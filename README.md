@@ -43,5 +43,8 @@ El sistema está dividido en servicios independientes, cada uno con su propia ba
 
 Este es el esquema para cada microservicio, demostrando el patrón "Database-per-Service".
 
+<img width="1639" height="997" alt="BD_UtaBox" src="https://github.com/user-attachments/assets/24523ce0-5aae-4184-98c7-2237df888d23" />
+
+
 
 
