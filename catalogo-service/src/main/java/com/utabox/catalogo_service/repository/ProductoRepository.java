@@ -8,5 +8,5 @@ import com.utabox.catalogo_service.model.Producto;
 
 @Repository
 public interface ProductoRepository extends JpaRepository<Producto, Integer> {
-    List<Producto> findByTipo(String tipo); // Busca productos por tipo
+    List<Producto> findByTipoOrderByIdProductoAsc(String tipo); // Busca productos por tipo
 }

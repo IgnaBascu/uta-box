@@ -1,5 +1,7 @@
 package com.utabox.catalogo_service.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -17,7 +19,8 @@ public class Activo {
     private String estado; // ej. "disponible", "mantenimiento"
 
     // --- Relación ---
-    // Muchos Activos (salas) pertenecen a un Producto (tipo de sala)    
+    // Muchos Activos (salas) pertenecen a un Producto (tipo de sala) 
+    @JsonBackReference   
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;

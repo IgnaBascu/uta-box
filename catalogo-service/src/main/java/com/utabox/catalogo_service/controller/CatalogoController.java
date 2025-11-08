@@ -21,7 +21,7 @@ public class CatalogoController {
     @GetMapping("/salas") // Endpoint publico
     public ResponseEntity<List<Producto>> getTiposDeSala() {
         
-        List<Producto> salas = productoRepository.findByTipo("sala");   
+        List<Producto> salas = productoRepository.findByTipoOrderByIdProductoAsc("sala");   
         
         return ResponseEntity.ok(salas);
     }

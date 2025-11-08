@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -36,6 +38,7 @@ public class Producto {
     @Column(name = "fecha_actualizacion", nullable = false)
     private Timestamp fechaActualizacion;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "producto", fetch = FetchType.LAZY)
     private List<Activo> activos;
 
