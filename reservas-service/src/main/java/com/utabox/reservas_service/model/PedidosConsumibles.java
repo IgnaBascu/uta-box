@@ -1,6 +1,9 @@
 package com.utabox.reservas_service.model;
 
 import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.*;
 
 
@@ -25,6 +28,7 @@ public class PedidosConsumibles {
 
     // --- Relación ---
     // Muchos pedidos pertenecen a una Reserva
+    @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reserva_id", nullable = false)
     private Reserva reserva;

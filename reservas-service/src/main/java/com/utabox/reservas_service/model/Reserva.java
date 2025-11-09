@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -40,6 +42,7 @@ public class Reserva {
 
     // --- Relación ---
     // Una Reserva puede tener muchos Pedidos de Consumibles
+    @JsonManagedReference
     @OneToMany(mappedBy = "reserva", cascade = CascadeType.ALL)
     private List<PedidosConsumibles> consumibles;
 
