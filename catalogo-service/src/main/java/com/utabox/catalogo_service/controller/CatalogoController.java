@@ -108,5 +108,18 @@ public class CatalogoController {
     }
 
 
+    // Endpoint GET para devolver producto especifico
+    @GetMapping("/{id}")
+    public ResponseEntity<Producto> getProductoPorId(@PathVariable Integer id) {
+    Optional<Producto> producto = productoRepository.findById(id);
+    
+    if (producto.isEmpty()) {
+        return ResponseEntity.notFound().build();
+    }
+    
+    return ResponseEntity.ok(producto.get());
+}
+
+
 
 }
