@@ -19,6 +19,16 @@
       "projectName": "catalogo-service",
       "args": "",
       "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-ReservasServiceApplication<reservas-service>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.utabox.reservas_service.ReservasServiceApplication",
+      "projectName": "reservas-service",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
     }
   ]
 }
