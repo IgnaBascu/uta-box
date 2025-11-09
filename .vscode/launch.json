@@ -8,7 +8,8 @@
       "mainClass": "com.utabox.eureka_server.EurekaServerApplication",
       "projectName": "eureka-server",
       "args": "",
-      "envFile": "${workspaceFolder}/.env"
+      "envFile": "${workspaceFolder}/.env",
+      "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=49402 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=eureka-server"
     },
     {
       "type": "java",
@@ -27,6 +28,26 @@
       "cwd": "${workspaceFolder}",
       "mainClass": "com.utabox.reservas_service.ReservasServiceApplication",
       "projectName": "reservas-service",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-AuthServiceApplication<auth-service>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.utabox.auth_service.AuthServiceApplication",
+      "projectName": "auth-service",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-GatewayServiceApplication<gateway-service>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.utabox.gateway_service.GatewayServiceApplication",
+      "projectName": "gateway-service",
       "args": "",
       "envFile": "${workspaceFolder}/.env"
     }
