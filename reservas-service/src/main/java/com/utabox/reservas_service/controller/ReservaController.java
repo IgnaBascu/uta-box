@@ -126,10 +126,12 @@ public class ReservaController {
                 }
                 
                 // 5b. VALIDAR TIPO (¡NUEVO!)
-                // Asumiendo que tus tipos son "sala" y "comida"
-                if (!"comida".equals(consumibleProducto.getTipo())) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El producto ID: " + itemDto.getProductoId() + " no es un consumible ('comida').");
+                String tipo = consumibleProducto.getTipo();
+                if ("sala".equals(tipo)) {
+                    // Si es "sala", RECHAZAR.
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El producto ID: " + itemDto.getProductoId() + " es una 'sala' y no puede ser añadido como consumible.");
                 }
+                // Si no es "sala" (ej. "comida" o "bebida"), DEJAR PASAR.
                 
                 // 5c. REDUCIR STOCK (PUT)
                 try {
