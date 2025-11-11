@@ -27,7 +27,7 @@ public class JwtUtil {
     // Método principal para validar y extraer TODOS los datos (claims) del token
     public Claims getClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+                .setSigningKey(getSigningKey())                
                 .build()
                 .parseClaimsJws(token)
                 .getBody();

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,6 +20,10 @@ import com.utabox.reservas_service.model.PedidosConsumibles;
 import com.utabox.reservas_service.model.Reserva;
 import com.utabox.reservas_service.repository.PedidosConsumiblesRepository;
 import com.utabox.reservas_service.repository.ReservaRepository;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("api/reservas")
@@ -30,6 +35,9 @@ public class ReservaController {
     @Autowired
     private PedidosConsumiblesRepository pedidosConsumiblesRepository;
 
+    @Autowired
+    private WebClient.Builder webClientBuilder;
+
     // Endpoint GET para que usuario pueda ver la agenda de una sala en particular
     @GetMapping("/activo/{id}")
     public ResponseEntity<List<Reserva>> getAgendaDeSala(@PathVariable Integer id) {
@@ -39,37 +47,40 @@ public class ReservaController {
         return ResponseEntity.ok(agenda);
     }
 
-    /**
-     * Endpoint de CLIENTE para crear una nueva reserva.
-     * Cumple con: POST /api/reservar
-     */
+    
+    // Endpoint POST cliente para reservar una sala
     @PostMapping("/reservar")
-    public ResponseEntity<Reserva> crearReserva(@RequestBody ReservaRequestDTO request) {
+    public ResponseEntity<Reserva> crearReserva(@RequestBody ReservaRequestDTO request,
+    @RequestHeader("X-Usuario-Id") Integer usuarioId ,
+    @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
 
-        // --- TAREAS PENDIENTES (¡MUY IMPORTANTE!) ---
-        // 1. VALIDAR DISPONIBILIDAD: Debemos comprobar que 
-        //    request.getActivoId() no esté reservado entre
-        //    request.getFechaInicio() y request.getFechaTermino().
-        //    Si lo está, devolvemos un 409 Conflict.
-        //
-        // 2. OBTENER DATOS DEL TOKEN: Necesitaremos el 'usuario_id' 
-        //    que vendrá en el token (lo inyectará el Gateway).
-        //
-        // 3. LLAMAR A CATALOGO-SERVICE: Necesitamos llamar por API 
-        //    a catalogo-service para obtener el precio de la sala 
-        //    (activoId) y los precios de los consumibles (productoId).
-        // --- FIN TAREAS PENDIENTES ---
+        // Validar Disponibilidad
+        Integer overlappingCount = reservaRepository.countOverlappingReservations(
+                request.getActivoId(),
+                request.getFechaInicio(),
+                request.getFechaTermino()
+        );
 
+        if (overlappingCount > 0) {
+            // Devuelve 409 Conflict
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El horario seleccionado para esta sala ya no está disponible.");
+        }
 
-        // --- Lógica de guardado (Simplificada por ahora) ---
+        // 2. LLAMAR A CATALOGO-SERVICE para obtener el precio de la SALA 
+        ProductoDTO salaProducto = webClientBuilder.build()
+            .get()
+            .uri("lb://CATALOGO-SERVICE/api/productos/" + request.getActivoId())
+            .header(HttpHeaders.AUTHORIZATION, authHeader)
+            .retrieve() // Ejecuta la petición
+            .bodyToMono(ProductoDTO.class) // Mapea la respuesta a nuestro DTO
+            .block(); // Espera la respuesta (bloqueante)
 
-        // 1. Crear el objeto Reserva principal
-        Reserva nuevaReserva = new Reserva();
+        // 3. Crear el objeto Reserva principal
+        Reserva nuevaReserva = new Reserva();        
         
-        // (Simulación de datos que vendrían del token y de catalogo-service)
-        nuevaReserva.setUsuarioId(999); // ID de usuario (temporal)
-        nuevaReserva.setPrecioTotalSala(BigDecimal.valueOf(30000)); // Precio (temporal)
-        // (Fin de simulación)
+        nuevaReserva.setUsuarioId(usuarioId); // id usuario tomado del header
+        nuevaReserva.setPrecioTotalSala(salaProducto.getPrecio()); // Precio (temporal)
+        
 
         nuevaReserva.setActivoId(request.getActivoId());
         nuevaReserva.setFechaInicio(request.getFechaInicio());
@@ -82,10 +93,23 @@ public class ReservaController {
         if (request.getConsumibles() != null && !request.getConsumibles().isEmpty()) {
             
             for (var itemDto : request.getConsumibles()) {
+
+                ProductoDTO consumibleProducto = webClientBuilder.build()
+                    .get()
+                    .uri("lb://CATALOGO-SERVICE/api/productos/" + itemDto.getProductoId())
+                    .header(HttpHeaders.AUTHORIZATION, authHeader)
+                    .retrieve()
+                    .bodyToMono(ProductoDTO.class)
+                    .block();
+
+                if (consumibleProducto == null || consumibleProducto.getPrecio() == null) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se pudo obtener el precio del consumible ID: " + itemDto.getProductoId());
+                }
+
                 PedidosConsumibles consumible = new PedidosConsumibles();
                 consumible.setProductoId(itemDto.getProductoId());
                 consumible.setCantidad(itemDto.getCantidad());
-                consumible.setPrecioUnitarioOriginal(BigDecimal.valueOf(5000)); // Precio (temporal)
+                consumible.setPrecioUnitarioOriginal(consumibleProducto.getPrecio()); // Precio (temporal)
                 
                 // Le decimos al consumible a qué reserva pertenece
                 consumible.setReserva(nuevaReserva); 
