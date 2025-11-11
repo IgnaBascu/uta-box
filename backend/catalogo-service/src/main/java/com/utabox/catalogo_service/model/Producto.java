@@ -39,7 +39,7 @@ public class Producto {
     private Timestamp fechaActualizacion;
 
     @JsonManagedReference
-    @OneToMany(mappedBy = "producto", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "producto", fetch = FetchType.EAGER)
     private List<Activo> activos;
 
     // Getter & Setters

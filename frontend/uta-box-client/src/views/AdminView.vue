@@ -2,13 +2,14 @@
   <v-container>
     <v-row>
       <v-col cols="12">
-        <h1 class="text-h4 mb-4">Gestión de Productos</h1>
+        <!-- Título con color Primary para el look Kawaii -->
+        <h1 class="text-h4 mb-4" :style="{ color: 'var(--v-theme-primary)' }">Gestión de Productos</h1>
       </v-col>
     </v-row>
 
-    <!-- TABLA DE DATOS -->
-    <v-card elevation="4">
-      <v-card-title class="d-flex align-center pe-2">
+    <!-- TABLA DE DATOS (Usando v-table simple para evitar errores de importación) -->
+    <v-card elevation="4" rounded="lg">
+      <v-card-title class="d-flex align-center pe-2" :style="{ color: 'var(--v-theme-on-surface)' }">
         <v-icon icon="mdi-video-input-component"></v-icon> &nbsp;
         Productos del Catálogo
 
@@ -16,15 +17,15 @@
 
         <!-- DIÁLOGO (MODAL) PARA CREAR/EDITAR -->
         <v-dialog v-model="dialog" max-width="500px">
-          <template v-slot:activator="{ props }">a
-            <!-- Botón de "Nuevo Producto" -->
-            <v-btn color="primary" v-bind="props" prepend-icon="mdi-plus">
+          <template v-slot:activator="{ props }">
+            <!-- Botón de "Nuevo Producto" con color primario -->
+            <v-btn color="primary" variant="tonal" v-bind="props" prepend-icon="mdi-plus">
               Nuevo Producto
             </v-btn>
           </template>
 
           <!-- Contenido del Modal -->
-          <v-card>
+          <v-card rounded="lg">
             <v-card-title>
               <span class="text-h5">{{ formTitle }}</span>
             </v-card-title>
@@ -36,6 +37,8 @@
                     <v-text-field
                       v-model="editedItem.nombre"
                       label="Nombre"
+                      variant="outlined"
+                      density="compact"
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12" sm="6">
@@ -43,6 +46,8 @@
                       v-model="editedItem.tipo"
                       label="Tipo"
                       :items="['sala', 'comida', 'bebida']"
+                      variant="outlined"
+                      density="compact"
                     ></v-select>
                   </v-col>
                   <v-col cols="12">
@@ -50,6 +55,8 @@
                       v-model="editedItem.descripcion"
                       label="Descripción"
                       rows="2"
+                      variant="outlined"
+                      density="compact"
                     ></v-textarea>
                   </v-col>
                   <v-col cols="12" sm="6">
@@ -58,6 +65,8 @@
                       label="Precio (ej. 50000)"
                       type="number"
                       prefix="$"
+                      variant="outlined"
+                      density="compact"
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12" sm="6">
@@ -65,6 +74,8 @@
                       v-model.number="editedItem.stock"
                       label="Stock"
                       type="number"
+                      variant="outlined"
+                      density="compact"
                     ></v-text-field>
                   </v-col>
                 </v-row>
@@ -74,6 +85,7 @@
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="grey" variant="text" @click="close">Cancelar</v-btn>
+              <!-- Botón Guardar usa Primary/tonal -->
               <v-btn color="primary" variant="tonal" @click="save">Guardar</v-btn>
             </v-card-actions>
           </v-card>
@@ -81,7 +93,7 @@
 
         <!-- Diálogo de Borrar -->
         <v-dialog v-model="dialogDelete" max-width="500px">
-          <v-card>
+          <v-card rounded="lg">
             <v-card-title class="text-h5">¿Estás seguro que quieres borrar este item?</v-card-title>
             <v-card-actions>
               <v-spacer></v-spacer>
@@ -94,31 +106,56 @@
 
       </v-card-title>
       
-      <!-- La Tabla que muestra los productos -->
-      <v-data-table
-        :headers="headers"
-        :items="productos"
-        :loading="loading"
-        density="compact"
-      >
-        <template v-slot:item.precio="{ value }">
-          ${{ value.toLocaleString('es-CL') }}
-        </template>
-        <template v-slot:item.actions="{ item }">
-          <v-icon
-            icon="mdi-pencil"
-            size="small"
-            class="me-2"
-            @click="editItem(item)"
-          ></v-icon>
-          <v-icon
-            icon="mdi-delete"
-            size="small"
-            color="error"
-            @click="deleteItem(item)"
-          ></v-icon>
-        </template>
-      </v-data-table>
+      <!-- Tabla con diseño de Vuetify simple -->
+      <v-table density="compact" class="elevation-0">
+        <!-- Cabecera de la tabla -->
+        <thead>
+          <tr>
+            <th class="text-left font-weight-bold" v-for="header in headers" :key="header.key">
+              {{ header.title }}
+            </th>
+          </tr>
+        </thead>
+        
+        <!-- Cuerpo de la tabla con los datos -->
+        <tbody>
+          <tr v-if="loading">
+            <td :colspan="headers.length" class="text-center py-4">
+              <v-progress-circular indeterminate color="primary"></v-progress-circular>
+              <div class="mt-2 text-caption">Cargando productos...</div>
+            </td>
+          </tr>
+          
+          <tr v-else-if="productos.length === 0">
+            <td :colspan="headers.length" class="text-center py-4 text-medium-emphasis">
+              No hay productos en el catálogo. ¡Crea uno!
+            </td>
+          </tr>
+
+          <tr v-else v-for="item in productos" :key="item.idProducto">
+            <td>{{ item.idProducto }}</td>
+            <td>{{ item.nombre }}</td>
+            <td>{{ item.tipo }}</td>
+            <td>${{ item.precio.toLocaleString('es-CL') }}</td>
+            <td>{{ item.stock }}</td>
+            <td>
+              <!-- Botones de Acción -->
+              <v-icon
+                icon="mdi-pencil"
+                size="large"
+                class="me-2 text-primary"
+                @click="editItem(item)"
+              ></v-icon>
+              <v-icon
+                icon="mdi-delete"
+                size="large"
+                color="error"
+                @click="deleteItem(item)"
+              ></v-icon>
+            </td>
+          </tr>
+        </tbody>
+      </v-table>
     </v-card>
   </v-container>
 </template>
@@ -130,12 +167,14 @@ import api from '../api' // ¡Usamos el helper de API!
 // --- Estado de la Tabla ---
 const productos = ref([])
 const loading = ref(true)
+
+// NOTA: Los headers aquí se usan solo como referencia para la tabla HTML simple
 const headers = ref([
-  { title: 'ID', key: 'idProducto' },
-  { title: 'Nombre', key: 'nombre' },
-  { title: 'Tipo', key: 'tipo' },
-  { title: 'Precio', key: 'precio' },
-  { title: 'Stock', key: 'stock' },
+  { title: 'ID', key: 'idProducto', sortable: true },
+  { title: 'Nombre', key: 'nombre', sortable: true },
+  { title: 'Tipo', key: 'tipo', sortable: true },
+  { title: 'Precio', key: 'precio', sortable: true },
+  { title: 'Stock', key: 'stock', sortable: true },
   { title: 'Acciones', key: 'actions', sortable: false },
 ])
 
@@ -167,13 +206,14 @@ const fetchProductos = async () => {
     productos.value = response.data
   } catch (error) {
     console.error("Error cargando productos:", error)
+    // El alert es un placeholder para errores de red/seguridad
     alert("Error: No se pudo cargar los productos. ¿Estás seguro que el backend está corriendo y estás logueado como admin?")
   } finally {
     loading.value = false
   }
 }
 
-// --- Lógica del Modal ---
+// --- Lógica del Modal y CRUD (sin cambios) ---
 const close = () => {
   dialog.value = false
   editedItem.value = { ...defaultItem }
@@ -197,8 +237,6 @@ const deleteItem = (item) => {
   editedItem.value = { ...item }
   dialogDelete.value = true
 }
-
-// --- Lógica de API (CRUD) ---
 
 const save = async () => {
   loading.value = true
@@ -237,5 +275,4 @@ const deleteItemConfirm = async () => {
     loading.value = false
   }
 }
-
 </script>

@@ -1,16 +1,35 @@
 <template>
   <v-app>
     <!-- 1. BARRA DE NAVEGACIÓN -->
-    <v-app-bar app color="grey-darken-4" density="compact" elevation="2">
+    <v-app-bar app color="primary" density="compact" elevation="2">
+      
+      <!-- ¡AQUÍ ESTÁ EL ARREGLO! -->
       <v-toolbar-title class="font-weight-bold">
-        <v-icon>mdi-microphone-variant</v-icon>
-        UTA-BOX
+        <!-- 1. Quité 'd-flex align-center' de aquí... -->
+        
+        <!-- 2. ...y lo puse en un <div> interno -->
+        <div class="d-flex align-center">
+          <v-img
+            :src="appIcon"
+            alt="Uta-Box Icon"
+            contain
+            max-height="36"
+            max-width="36"
+            class="mr-2"
+          />
+          <!-- 3. Envolví el texto en un <span> para más seguridad -->
+          <span>UTA-BOX</span>
+        </div>
       </v-toolbar-title>
+      <!-- FIN DEL ARREGLO -->
 
       <v-spacer></v-spacer>
 
       <!-- Botón de Home (siempre visible) -->
       <v-btn to="/" prepend-icon="mdi-home">Home</v-btn>
+
+      <!-- Botón de Reservar (siempre visible) -->
+      <v-btn to="/reservar" prepend-icon="mdi-calendar-check">Reservar</v-btn>
 
       <!-- Botón de Admin (SÓLO si eres admin) -->
       <v-btn v-if="isAdmin" to="/admin" prepend-icon="mdi-security">
@@ -34,7 +53,7 @@
     </v-main>
 
     <!-- 3. FOOTER -->
-    <v-footer app class="d-flex justify-center" color="grey-darken-4" height="40">
+    <v-footer app class="d-flex justify-center" color="primary" height="40">
       <div class="text-caption">
         Uta-Box Karaoke &copy; {{ new Date().getFullYear() }}
       </div>
@@ -102,6 +121,8 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios' // Usamos axios normal SÓLO para el login
 
+import appIcon from '@/assets/uta_box_36.png'
+
 const router = useRouter()
 
 // --- Estado de Autenticación ---
@@ -141,7 +162,7 @@ const handleLogin = async () => {
   loading.value = true
   loginError.value = null
   try {
-    // Llamamos a tu API de Gateway (sin 'api.js' porque aún no tenemos token)
+    // Llamamos a API de Gateway (sin 'api.js' porque aún no tenemos token)
     const response = await axios.post('http://localhost:8080/api/auth/login', {
       email: email.value,
       password: password.value

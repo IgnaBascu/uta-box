@@ -3,18 +3,7 @@
   --vt-c-white: #ffffff;
   --vt-c-white-soft: #f8f8f8;
   --vt-c-white-mute: #f2f2f2;
-
-  --vt-c-black: #181818;
-  --vt-c-black-soft: #222222;
-  --vt-c-black-mute: #282828;
-
-  --vt-c-indigo: #2c3e50;
-
-  --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
-  --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
-  --vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
-  --vt-c-divider-dark-2: rgba(84, 84, 84, 0.48);
-
+  /* ... (resto de variables de vue) ... */
   --vt-c-text-light-1: var(--vt-c-indigo);
   --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
   --vt-c-text-dark-1: var(--vt-c-white);
@@ -23,19 +12,28 @@
 
 /* semantic color variables for this project */
 :root {
-  --color-background: var(--vt-c-white);
-  --color-background-soft: var(--vt-c-white-soft);
-  --color-background-mute: var(--vt-c-white-mute);
+  --color-background: #FFFBF5;
+  --color-background-soft: #FDF8F2;
+  --color-background-mute: #F5F0EB;
 
-  --color-border: var(--vt-c-divider-light-2);
-  --color-border-hover: var(--vt-c-divider-light-1);
+  --color-border: #E5E7EB;
+  --color-border-hover: #D1D5DB;
 
-  --color-heading: var(--vt-c-text-light-1);
-  --color-text: var(--vt-c-text-light-1);
+  --color-heading: #D946EF;
+  --color-text: #4B5563;
 
   --section-gap: 160px;
+  
+  /* * OPCIONAL: Sobrescribe las variables de Vuetify 
+   * para que usen TUS colores.
+   */
+  --v-theme-background: var(--color-background);
+  --v-theme-surface: var(--color-background-soft);
+  --v-theme-on-surface: var(--color-text);
+  /* ...y así sucesivamente para otros colores (primary, secondary, etc.) */
 }
 
+/* Modo oscuro: DESCOMENTADO */
 @media (prefers-color-scheme: dark) {
   :root {
     --color-background: var(--vt-c-black);
@@ -47,6 +45,13 @@
 
     --color-heading: var(--vt-c-text-dark-1);
     --color-text: var(--vt-c-text-dark-2);
+
+    /* * OPCIONAL: También sobrescribe las variables de Vuetify 
+     * para el modo oscuro.
+     */
+    --v-theme-background: var(--color-background);
+    --v-theme-surface: var(--color-background-soft);
+    --v-theme-on-surface: var(--color-text);
   }
 }
 
@@ -61,12 +66,17 @@
 body {
   min-height: 100vh;
   color: var(--color-text);
-  background: var(--color-background);
+  background: var(--color-background); /* Este será cubierto por .v-application */
+  background-image: radial-gradient(rgba(249, 168, 212, 0.2) 1px, transparent 1px);
+  background-size: 15px 15px;
+  background-attachment: fixed; /* Mantiene el patrón fijo al hacer scroll */
+
   transition:
     color 0.5s,
     background-color 0.5s;
   line-height: 1.6;
   font-family:
+    'M PLUS Rounded 1c',
     Inter,
     -apple-system,
     BlinkMacSystemFont,
@@ -83,4 +93,8 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.v-application {
+  background: transparent !important;
 }

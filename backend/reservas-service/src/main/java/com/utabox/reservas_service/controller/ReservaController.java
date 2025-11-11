@@ -178,7 +178,7 @@ public class ReservaController {
         nuevaReserva.setPrecioTotalConsumibles(totalConsumibles);
         nuevaReserva.setPrecioTotalGeneral(granTotal);
         
-        // --- 7. GUARDAR TODO EN BD ---
+        // --- 7. GUARDAR todo EN BD ---
         Reserva reservaGuardada = reservaRepository.save(nuevaReserva);
 
         if (!listaConsumibles.isEmpty()) {
