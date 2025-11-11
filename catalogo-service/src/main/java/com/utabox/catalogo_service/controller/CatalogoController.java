@@ -19,28 +19,31 @@ import com.utabox.catalogo_service.dto.ProductoRequestDTO;
 import com.utabox.catalogo_service.model.Producto;
 import com.utabox.catalogo_service.repository.ProductoRepository;
 
+import org.springframework.web.bind.annotation.RequestParam; // Para leer "?cantidad="
+import org.springframework.http.HttpStatus; // Para poder devolver 409 Conflict
+
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("api/productos") // Prefijo para todos los endpoints
 public class CatalogoController {
-    
+
     @Autowired
     private ProductoRepository productoRepository;
 
-    // Endpoint GET para obtener listado de salas 
-    @GetMapping("/salas") 
+    // Endpoint GET para obtener listado de salas
+    @GetMapping("/salas")
     public ResponseEntity<List<Producto>> getTiposDeSala() {
-        
-        List<Producto> salas = productoRepository.findByTipoOrderByIdProductoAsc("sala");   
-        
+
+        List<Producto> salas = productoRepository.findByTipoOrderByIdProductoAsc("sala");
+
         return ResponseEntity.ok(salas);
     }
 
     // Endpoint POST para agregar productos
     @PostMapping
     public ResponseEntity<Producto> crearProducto(@Valid @RequestBody ProductoRequestDTO dto) {
-        
+
         // Convertimos el DTO (petición) a la Entidad (base de datos)
         Producto nuevoProducto = new Producto();
         nuevoProducto.setNombre(dto.getNombre());
@@ -53,17 +56,18 @@ public class CatalogoController {
         Timestamp ahora = new Timestamp(System.currentTimeMillis());
         nuevoProducto.setFechaCreacion(ahora);
         nuevoProducto.setFechaActualizacion(ahora);
-        
+
         Producto productoGuardado = productoRepository.save(nuevoProducto);
-        
+
         // Devolvemos 201 Created y el producto creado
         return ResponseEntity.status(201).body(productoGuardado);
     }
 
     // Endpoint PUT para actualizar un producto
     @PutMapping("/{id}")
-    public ResponseEntity<Producto> actualizarProducto(@PathVariable Integer id, @RequestBody Producto productoActualizado) {
-        
+    public ResponseEntity<Producto> actualizarProducto(@PathVariable Integer id,
+            @RequestBody Producto productoActualizado) {
+
         Optional<Producto> productoExistente = productoRepository.findById(id);
 
         if (productoExistente.isEmpty()) {
@@ -72,7 +76,7 @@ public class CatalogoController {
         }
 
         Producto dbProducto = productoExistente.get();
-        
+
         // Actualizamos los campos que pueden cambiar
         dbProducto.setNombre(productoActualizado.getNombre());
         dbProducto.setDescripcion(productoActualizado.getDescripcion());
@@ -83,7 +87,7 @@ public class CatalogoController {
         // El id y la fechaCreacion no se tocan
 
         Producto productoGuardado = productoRepository.save(dbProducto);
-        
+
         return ResponseEntity.ok(productoGuardado);
     }
 
@@ -94,9 +98,10 @@ public class CatalogoController {
             // Si no existe, devuelve 404
             return ResponseEntity.notFound().build();
         }
-        
-        // Si el producto esta ligado a activos, se deben borrar primero los activos o dará error de llaves
-        
+
+        // Si el producto esta ligado a activos, se deben borrar primero los activos o
+        // dará error de llaves
+
         try {
             productoRepository.deleteById(id);
             // Devuelve 204 No Content (éxito, pero no devuelve cuerpo)
@@ -107,19 +112,44 @@ public class CatalogoController {
         }
     }
 
-
     // Endpoint GET para devolver producto especifico
     @GetMapping("/{id}")
     public ResponseEntity<Producto> getProductoPorId(@PathVariable Integer id) {
-    Optional<Producto> producto = productoRepository.findById(id);
-    
-    if (producto.isEmpty()) {
-        return ResponseEntity.notFound().build();
+        Optional<Producto> producto = productoRepository.findById(id);
+
+        if (producto.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(producto.get());
     }
-    
-    return ResponseEntity.ok(producto.get());
-}
 
+    // Esta es la API que será llamada por el WebClient de reservas-service
+    @PutMapping("/{id}/reducir-stock")
+    public ResponseEntity<Void> reducirStock(
+            @PathVariable Integer id,
+            @RequestParam Integer cantidad) { // Recibe el ID y la cantidad (ej. ?cantidad=4)
 
+        Optional<Producto> productoOpt = productoRepository.findById(id);
+
+        if (productoOpt.isEmpty()) {
+            return ResponseEntity.notFound().build(); // 404 si el producto no existe
+        }
+
+        Producto producto = productoOpt.get();
+
+        // 1. Verificamos si hay stock 
+        if (producto.getStock() < cantidad) {
+            // 2. Si no hay stock, devuelve 409 Conflict
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+
+        // 3. Si hay stock, lo reducimos y guardamos
+        producto.setStock(producto.getStock() - cantidad);
+        producto.setFechaActualizacion(new Timestamp(System.currentTimeMillis()));
+        productoRepository.save(producto);
+
+        return ResponseEntity.ok().build(); // Devuelve 200 OK (Éxito)
+    }
 
 }

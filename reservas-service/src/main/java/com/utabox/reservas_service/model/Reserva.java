@@ -40,6 +40,12 @@ public class Reserva {
     @Column(name = "precio_total_sala", nullable = false, precision = 10, scale = 2)
     private BigDecimal precioTotalSala;
 
+    @Column(name = "precio_total_consumibles", nullable = false, precision = 10, scale = 2)
+    private BigDecimal precioTotalConsumibles;
+
+    @Column(name = "precio_total_general", nullable = false, precision = 10, scale = 2)
+    private BigDecimal precioTotalGeneral;
+
     // --- Relación ---
     // Una Reserva puede tener muchos Pedidos de Consumibles
     @JsonManagedReference
@@ -50,6 +56,22 @@ public class Reserva {
 
     public Integer getIdReserva() {
         return idReserva;
+    }
+
+    public BigDecimal getPrecioTotalConsumibles() {
+        return precioTotalConsumibles;
+    }
+
+    public void setPrecioTotalConsumibles(BigDecimal precioTotalConsumibles) {
+        this.precioTotalConsumibles = precioTotalConsumibles;
+    }
+
+    public BigDecimal getPrecioTotalGeneral() {
+        return precioTotalGeneral;
+    }
+
+    public void setPrecioTotalGeneral(BigDecimal precioTotalGeneral) {
+        this.precioTotalGeneral = precioTotalGeneral;
     }
 
     public void setIdReserva(Integer idReserva) {

@@ -1,10 +1,16 @@
 package com.utabox.reservas_service.controller;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,6 +19,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException; // Importante
+import org.springframework.web.server.ResponseStatusException;
 
 import com.utabox.reservas_service.dto.ProductoDTO;
 import com.utabox.reservas_service.dto.ReservaRequestDTO;
@@ -20,10 +29,7 @@ import com.utabox.reservas_service.model.PedidosConsumibles;
 import com.utabox.reservas_service.model.Reserva;
 import com.utabox.reservas_service.repository.PedidosConsumiblesRepository;
 import com.utabox.reservas_service.repository.ReservaRepository;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpHeaders;
-import org.springframework.web.server.ResponseStatusException;
+
 
 @RestController
 @RequestMapping("api/reservas")
@@ -38,23 +44,21 @@ public class ReservaController {
     @Autowired
     private WebClient.Builder webClientBuilder;
 
-    // Endpoint GET para que usuario pueda ver la agenda de una sala en particular
+    // Endpoint GET para ver la agenda de una sala
     @GetMapping("/activo/{id}")
     public ResponseEntity<List<Reserva>> getAgendaDeSala(@PathVariable Integer id) {
-        // Usamos el método que creamos en el repositorio
         List<Reserva> agenda = reservaRepository.findByActivoId(id);
-        
         return ResponseEntity.ok(agenda);
     }
 
     
-    // Endpoint POST cliente para reservar una sala
+    // Endpoint POST cliente para crear una reserva
     @PostMapping("/reservar")
     public ResponseEntity<Reserva> crearReserva(@RequestBody ReservaRequestDTO request,
     @RequestHeader("X-Usuario-Id") Integer usuarioId ,
     @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
 
-        // Validar Disponibilidad
+        // --- 1. VALIDAR DISPONIBILIDAD DE HORARIO ---
         Integer overlappingCount = reservaRepository.countOverlappingReservations(
                 request.getActivoId(),
                 request.getFechaInicio(),
@@ -62,38 +66,53 @@ public class ReservaController {
         );
 
         if (overlappingCount > 0) {
-            // Devuelve 409 Conflict
             throw new ResponseStatusException(HttpStatus.CONFLICT, "El horario seleccionado para esta sala ya no está disponible.");
         }
 
-        // 2. LLAMAR A CATALOGO-SERVICE para obtener el precio de la SALA 
+        // --- 2. OBTENER DATOS DE LA SALA (WebClient GET) ---
         ProductoDTO salaProducto = webClientBuilder.build()
             .get()
             .uri("lb://CATALOGO-SERVICE/api/productos/" + request.getActivoId())
             .header(HttpHeaders.AUTHORIZATION, authHeader)
-            .retrieve() // Ejecuta la petición
-            .bodyToMono(ProductoDTO.class) // Mapea la respuesta a nuestro DTO
-            .block(); // Espera la respuesta (bloqueante)
+            .retrieve()
+            .bodyToMono(ProductoDTO.class)
+            .block();
 
-        // 3. Crear el objeto Reserva principal
+        if (salaProducto == null || salaProducto.getPrecio() == null) {
+             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se pudo obtener el precio de la sala.");
+        }
+
+        // --- 3. CÁLCULO DE PRECIO DE SALA (POR HORAS) ---
+        BigDecimal precioPorHoraSala = salaProducto.getPrecio();
+        Instant inicio = request.getFechaInicio().toInstant();
+        Instant termino = request.getFechaTermino().toInstant();
+        
+        // Calcula minutos y los convierte a horas con 2 decimales
+        long minutosReservados = ChronoUnit.MINUTES.between(inicio, termino);
+        BigDecimal horasReservadas = new BigDecimal(minutosReservados)
+                                         .divide(new BigDecimal(60), 2, RoundingMode.HALF_UP);
+
+        BigDecimal precioSalaCalculado = precioPorHoraSala.multiply(horasReservadas);
+
+        // --- 4. INICIALIZAR RESERVA Y TOTALES ---
+        BigDecimal totalConsumibles = BigDecimal.ZERO; // Contador para consumibles
+        
         Reserva nuevaReserva = new Reserva();        
-        
-        nuevaReserva.setUsuarioId(usuarioId); // id usuario tomado del header
-        nuevaReserva.setPrecioTotalSala(salaProducto.getPrecio()); // Precio (temporal)
-        
-
+        nuevaReserva.setUsuarioId(usuarioId);
+        nuevaReserva.setPrecioTotalSala(precioSalaCalculado); // Asigna el precio por hora
         nuevaReserva.setActivoId(request.getActivoId());
         nuevaReserva.setFechaInicio(request.getFechaInicio());
         nuevaReserva.setFechaTermino(request.getFechaTermino());
         nuevaReserva.setFechaReservaCreada(new Timestamp(System.currentTimeMillis()));
         nuevaReserva.setEstado("confirmada");
         
-        // 2. Preparar los consumibles (si es que hay)
+        // --- 5. PROCESAR CONSUMIBLES (Bucle) ---
         List<PedidosConsumibles> listaConsumibles = new ArrayList<>();
         if (request.getConsumibles() != null && !request.getConsumibles().isEmpty()) {
             
             for (var itemDto : request.getConsumibles()) {
 
+                // 5a. OBTENER DATOS DEL CONSUMIBLE (GET)
                 ProductoDTO consumibleProducto = webClientBuilder.build()
                     .get()
                     .uri("lb://CATALOGO-SERVICE/api/productos/" + itemDto.getProductoId())
@@ -105,32 +124,66 @@ public class ReservaController {
                 if (consumibleProducto == null || consumibleProducto.getPrecio() == null) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se pudo obtener el precio del consumible ID: " + itemDto.getProductoId());
                 }
+                
+                // 5b. VALIDAR TIPO (¡NUEVO!)
+                // Asumiendo que tus tipos son "sala" y "comida"
+                if (!"comida".equals(consumibleProducto.getTipo())) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El producto ID: " + itemDto.getProductoId() + " no es un consumible ('comida').");
+                }
+                
+                // 5c. REDUCIR STOCK (PUT)
+                try {
+                     webClientBuilder.build()
+                        .put()
+                        .uri("lb://CATALOGO-SERVICE/api/productos/{id}/reducir-stock?cantidad={cant}",
+                             itemDto.getProductoId(),  // {id}
+                             itemDto.getCantidad()     // {cant}
+                        )
+                        .header(HttpHeaders.AUTHORIZATION, authHeader)
+                        .retrieve()
+                        .toBodilessEntity() // No esperamos cuerpo de respuesta
+                        .block();
+                } catch (WebClientResponseException e) {
+                    if (e.getStatusCode() == HttpStatus.CONFLICT) {
+                        // Si catalogo-service nos dijo 409 (Sin Stock)...
+                        throw new ResponseStatusException(HttpStatus.CONFLICT, "No hay stock suficiente para el producto ID: " + itemDto.getProductoId());
+                    }
+                    // Otro error en la llamada
+                    throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al actualizar stock: " + e.getMessage());
+                }
 
+                // 5d. CALCULAR SUBTOTALES
+                BigDecimal precioUnitario = consumibleProducto.getPrecio();
+                BigDecimal cantidad = new BigDecimal(itemDto.getCantidad());
+                
+                BigDecimal subtotalItem = precioUnitario.multiply(cantidad);
+                totalConsumibles = totalConsumibles.add(subtotalItem); // Sumamos al total
+
+
+                // 5e. PREPARAR PEDIDO
                 PedidosConsumibles consumible = new PedidosConsumibles();
                 consumible.setProductoId(itemDto.getProductoId());
                 consumible.setCantidad(itemDto.getCantidad());
-                consumible.setPrecioUnitarioOriginal(consumibleProducto.getPrecio()); // Precio (temporal)
-                
-                // Le decimos al consumible a qué reserva pertenece
+                consumible.setPrecioUnitarioOriginal(precioUnitario); // Guardamos el precio unitario
                 consumible.setReserva(nuevaReserva); 
-                
                 listaConsumibles.add(consumible);
             }
         }
         
-        // 3. Guardar todo
-        // (Guardamos la reserva principal)
+        // --- 6. SETEAR TOTALES FINALES ---
+        BigDecimal granTotal = precioSalaCalculado.add(totalConsumibles);
+        
+        nuevaReserva.setPrecioTotalConsumibles(totalConsumibles);
+        nuevaReserva.setPrecioTotalGeneral(granTotal);
+        
+        // --- 7. GUARDAR TODO EN BD ---
         Reserva reservaGuardada = reservaRepository.save(nuevaReserva);
 
-        // (Guardamos los consumibles)
         if (!listaConsumibles.isEmpty()) {
             pedidosConsumiblesRepository.saveAll(listaConsumibles);
             reservaGuardada.setConsumibles(listaConsumibles);
         }
 
-        // Devolvemos 201 Created
         return ResponseEntity.status(201).body(reservaGuardada);
-
     }
-    
 }
