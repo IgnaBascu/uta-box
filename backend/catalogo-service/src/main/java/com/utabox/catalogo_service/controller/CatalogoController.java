@@ -31,6 +31,13 @@ public class CatalogoController {
     @Autowired
     private ProductoRepository productoRepository;
 
+    // GET /api/productos (Devuelve TODOS los productos, para el Admin)
+    @GetMapping
+    public ResponseEntity<List<Producto>> getAllProductos() {
+        List<Producto> productos = productoRepository.findAll();
+        return ResponseEntity.ok(productos);
+    }
+
     // Endpoint GET para obtener listado de salas
     @GetMapping("/salas")
     public ResponseEntity<List<Producto>> getTiposDeSala() {
