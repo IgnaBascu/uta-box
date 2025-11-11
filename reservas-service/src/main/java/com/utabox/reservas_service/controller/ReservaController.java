@@ -1,6 +1,5 @@
 package com.utabox.reservas_service.controller;
 
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.utabox.reservas_service.dto.ProductoDTO;
 import com.utabox.reservas_service.dto.ReservaRequestDTO;
 import com.utabox.reservas_service.model.PedidosConsumibles;
 import com.utabox.reservas_service.model.Reserva;
