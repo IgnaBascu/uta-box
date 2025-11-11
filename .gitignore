@@ -1,0 +1,43 @@
+# === Sistema Operativo ===
+.DS_Store
+Thumbs.db
+
+# === Java / Maven ===
+# Carpetas de compilación
+target/
+pom.xml.bak
+*.jar
+*.war
+
+# Archivos del Maven Wrapper
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# === IDEs ===
+# IntelliJ
+.idea/
+*.iml
+*.iws
+
+# VS Code (Aquí está tu carpeta)
+.vscode/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# === Frontend / Node.js ===
+# Esta es la carpeta más pesada del frontend
+node_modules/
+dist/
+build/
+.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# === Logs ===
+*.log
+logs/
