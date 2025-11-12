@@ -71,8 +71,8 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
                 // Si la ruta es de CLIENTE (reservar)
                 if (path.startsWith("/api/reservas/reservar")) {
-                    if (!rol.equals("cliente")) {
-                        return this.onError(exchange, HttpStatus.FORBIDDEN); // 403 si no es cliente
+                    if (!rol.equals("cliente") && !rol.equals("admin")) {
+                        return this.onError(exchange, HttpStatus.FORBIDDEN); // 403 si no es cliente o admin
                     }
                 }
                 

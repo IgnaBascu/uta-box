@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import AdminView from '../views/AdminView.vue'
 import BookingView from '../views/BookingView.vue'
-
+import RegisterView from '../views/RegisterView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -10,42 +10,63 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView
+      component: HomeView,
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: RegisterView
     },
     {
       path: '/reservar/:id?',
       name: 'booking',
-      component: BookingView
+      component: BookingView,
+      meta: {
+        requiresAuth: true,
+      },
     },
     {
       path: '/admin',
       name: 'admin',
       component: AdminView,
       // "meta" es información extra para la ruta
-      meta: { 
+      meta: {
         requiresAuth: true, // Esta ruta requiere estar logueado
-        requiresAdmin: true // Esta ruta requiere ser admin
-      } 
-    }
-  ]
+        requiresAdmin: true, // Esta ruta requiere ser admin
+      },
+    },
+  ],
 })
 
 // "Guardia de Navegación"
-// Se ejecuta antes de CADA cambio de página
+// Se ejecuta antes de cada cambio de página
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token');
-  const rol = localStorage.getItem('rol');
+  const token = localStorage.getItem('token')
+  const rol = localStorage.getItem('rol')
 
-  // Si la ruta (to) requiere ser Admin...
+  // 1. ¿La ruta requiere ser ADMIN? (es lo más restrictivo)
   if (to.meta.requiresAdmin) {
     if (token && rol === 'admin') {
-      next(); // ...y eres admin, te dejamos pasar.
+      next() // Es admin, puede pasar
     } else {
-      next('/'); // ...si no, te pateamos al Home.
+      console.warn('Acceso denegado: Se requiere rol de ADMIN.')
+      next('/') // No es admin, al Home
     }
+
+    // 2. ¿La ruta requiere SÓLO estar logueado? (ej. /reservar)
+  } else if (to.meta.requiresAuth) {
+    if (token && (rol === 'admin' || rol === 'cliente')) {
+      next() // Es admin O cliente, puede pasar
+    } else {
+      // No está logueado
+      console.warn('Acceso denegado: Se requiere login para /reservar.')
+      // Lo mandamos al Home Y le pasamos una "query" para abrir el login
+      next({ path: '/', query: { login: 'true' } })
+    }
+
+    // 3. Si no es ninguna de las anteriores, es pública
   } else {
-    // Para todas las demás páginas
-    next(); // Te dejamos pasar.
+    next() // Es una ruta pública (Home), puede pasar
   }
 })
 

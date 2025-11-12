@@ -95,7 +95,7 @@
         <v-col v-for="sala in salas" :key="sala.idProducto" cols="12" md="4">
           <v-card class="mx-auto" elevation="4" rounded="lg">
             <v-img
-              :src="`https://placehold.co/600x400/${sala.idProducto === 1 ? 'BAE6FD' : (sala.idProducto === 2 ? 'A7F3D0' : 'F9A8D4')}/4B5563?text=${sala.nombre.replace(' ', '+')}&font=mplus`"
+              :src="sala.imagenUrl ? sala.imagenUrl : `https://placehold.co/600x400/${sala.idProducto === 1 ? 'BAE6FD' : (sala.idProducto === 2 ? 'A7F3D0' : 'F9A8D4')}/4B5563?text=${sala.nombre.replace(' ', '+')}&font=mplus`"
               height="200px"
               cover
             ></v-img>
@@ -166,6 +166,8 @@ const fetchSalas = async () => {
   }
 }
 </script>
+
+
 
 <style scoped>
 /* (Tus estilos de 'banner' van aquí) */

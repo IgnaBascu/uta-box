@@ -3,15 +3,19 @@
     <v-row>
       <v-col cols="12">
         <!-- Título con color Primary para el look Kawaii -->
-        <h1 class="text-h4 mb-4" :style="{ color: 'var(--v-theme-primary)' }">Gestión de Productos</h1>
+        <h1 class="text-h4 mb-4" :style="{ color: 'var(--v-theme-primary)' }">
+          Gestión de Productos
+        </h1>
       </v-col>
     </v-row>
 
     <!-- TABLA DE DATOS (Usando v-table simple para evitar errores de importación) -->
     <v-card elevation="4" rounded="lg">
-      <v-card-title class="d-flex align-center pe-2" :style="{ color: 'var(--v-theme-on-surface)' }">
-        <v-icon icon="mdi-video-input-component"></v-icon> &nbsp;
-        Productos del Catálogo
+      <v-card-title
+        class="d-flex align-center pe-2"
+        :style="{ color: 'var(--v-theme-on-surface)' }"
+      >
+        <v-icon icon="mdi-video-input-component"></v-icon> &nbsp; Productos del Catálogo
 
         <v-spacer></v-spacer>
 
@@ -31,6 +35,9 @@
             </v-card-title>
 
             <v-card-text>
+              <v-alert v-if="saveError" type="error" variant="tonal" density="compact" class="mb-4">
+                {{ saveError }}
+              </v-alert>
               <v-container>
                 <v-row>
                   <v-col cols="12" sm="6">
@@ -78,6 +85,15 @@
                       density="compact"
                     ></v-text-field>
                   </v-col>
+                  <v-col cols="12">
+                    <v-text-field
+                      v-model="editedItem.imagenUrl"
+                      label="URL de la Imagen"
+                      prepend-inner-icon="mdi-image"
+                      variant="outlined"
+                      density="compact"
+                    ></v-text-field>
+                  </v-col>
                 </v-row>
               </v-container>
             </v-card-text>
@@ -89,7 +105,8 @@
               <v-btn color="primary" variant="tonal" @click="save">Guardar</v-btn>
             </v-card-actions>
           </v-card>
-        </v-dialog> <!-- Fin del Diálogo -->
+        </v-dialog>
+        <!-- Fin del Diálogo -->
 
         <!-- Diálogo de Borrar -->
         <v-dialog v-model="dialogDelete" max-width="500px">
@@ -103,9 +120,8 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
-
       </v-card-title>
-      
+
       <!-- Tabla con diseño de Vuetify simple -->
       <v-table density="compact" class="elevation-0">
         <!-- Cabecera de la tabla -->
@@ -116,7 +132,7 @@
             </th>
           </tr>
         </thead>
-        
+
         <!-- Cuerpo de la tabla con los datos -->
         <tbody>
           <tr v-if="loading">
@@ -125,7 +141,7 @@
               <div class="mt-2 text-caption">Cargando productos...</div>
             </td>
           </tr>
-          
+
           <tr v-else-if="productos.length === 0">
             <td :colspan="headers.length" class="text-center py-4 text-medium-emphasis">
               No hay productos en el catálogo. ¡Crea uno!
@@ -189,9 +205,11 @@ const editedItem = ref({
   precio: 0,
   stock: 0,
   tipo: 'sala',
+  imagenUrl: '',
 })
 const defaultItem = { ...editedItem.value }
 const formTitle = computed(() => (editedIndex.value === -1 ? 'Nuevo Producto' : 'Editar Producto'))
+const saveError = ref(null)
 
 // --- Cargar Datos ---
 onMounted(() => {
@@ -205,9 +223,11 @@ const fetchProductos = async () => {
     const response = await api.get('/productos')
     productos.value = response.data
   } catch (error) {
-    console.error("Error cargando productos:", error)
+    console.error('Error cargando productos:', error)
     // El alert es un placeholder para errores de red/seguridad
-    alert("Error: No se pudo cargar los productos. ¿Estás seguro que el backend está corriendo y estás logueado como admin?")
+    alert(
+      'Error: No se pudo cargar los productos. ¿Estás seguro que el backend está corriendo y estás logueado como admin?',
+    )
   } finally {
     loading.value = false
   }
@@ -218,6 +238,7 @@ const close = () => {
   dialog.value = false
   editedItem.value = { ...defaultItem }
   editedIndex.value = -1
+  saveError.value = null
 }
 
 const closeDelete = () => {
@@ -240,6 +261,7 @@ const deleteItem = (item) => {
 
 const save = async () => {
   loading.value = true
+  saveError.value = null
   try {
     if (editedIndex.value > -1) {
       // --- ACTUALIZAR (PUT) ---
@@ -253,8 +275,14 @@ const save = async () => {
     fetchProductos()
     close()
   } catch (error) {
-    console.error("Error guardando:", error)
-    alert("Error al guardar el producto.")
+    console.error('Error guardando:', error)
+    if (error.response && error.response.data && error.response.data.message) {
+      // Error de validación del backend (400 Bad Request)
+      saveError.value = error.response.data.message
+    } else {
+      // Otro tipo de error (red, 500, etc.)
+      saveError.value = 'Error desconocido. Intenta de nuevo.'
+    }
   } finally {
     loading.value = false
   }
@@ -269,8 +297,8 @@ const deleteItemConfirm = async () => {
     fetchProductos()
     closeDelete()
   } catch (error) {
-    console.error("Error borrando:", error)
-    alert("Error al borrar. (Asegúrate que no esté en uso por una reserva)")
+    console.error('Error borrando:', error)
+    alert('Error al borrar. (Asegúrate que no esté en uso por una reserva)')
   } finally {
     loading.value = false
   }

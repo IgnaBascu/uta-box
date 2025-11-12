@@ -10,6 +10,7 @@ import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import '@mdi/font/css/materialdesignicons.css' // Importar iconos
 
+
 // IMPORTACIÓN ADICIONAL PARA COMPONENTES MÁS AVANZADOS (COMO v-data-table)
 // Asegura que todos los componentes sean reconocidos.
 

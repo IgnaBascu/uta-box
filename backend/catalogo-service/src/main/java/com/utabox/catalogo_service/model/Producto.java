@@ -38,8 +38,11 @@ public class Producto {
     @Column(name = "fecha_actualizacion", nullable = false)
     private Timestamp fechaActualizacion;
 
+    @Column(name = "imagen_url", columnDefinition = "text") 
+    private String imagenUrl;
+
     @JsonManagedReference
-    @OneToMany(mappedBy = "producto", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "producto", fetch = FetchType.LAZY)
     private List<Activo> activos;
 
     // Getter & Setters
@@ -114,6 +117,14 @@ public class Producto {
 
     public void setActivos(List<Activo> activos) {
         this.activos = activos;
+    }
+
+    public String getImagenUrl() {
+        return imagenUrl;
+    }
+
+    public void setImagenUrl(String imagenUrl) {
+        this.imagenUrl = imagenUrl;
     }
 
     
