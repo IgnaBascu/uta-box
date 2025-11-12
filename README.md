@@ -43,7 +43,7 @@ El sistema está dividido en servicios independientes, cada uno con su propia ba
 
 - Backend: Java 17, Spring Boot 3, Spring Cloud (Gateway, Eureka), Spring Security, JWT, Spring Data JPA.
 
-- Frontend: Vue.js 3 (Composition API), Vue Router, Vuetify 3, Axios.
+- Frontend: Vue.js 3, Vuetify 3, Axios.
 
 - Base de Datos: PostgreSQL.
 
