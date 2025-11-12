@@ -51,7 +51,7 @@ El sistema está dividido en servicios independientes, cada uno con su propia ba
 
 Este es el esquema para cada microservicio, demostrando el patrón "Database-per-Service" (Modelo Inicial temporal).
 
-<img width="1271" height="846" alt="Karaoke_DB" src="https://github.com/user-attachments/assets/786b9cdb-7399-44b5-b98e-8a8383b47c46" />
+<img width="1281" height="876" alt="BD_UtaBox" src="https://github.com/user-attachments/assets/5fedcec9-6cca-4632-a705-4097300a24a9" />
 
 ## 🚀 Guía de Instalación y Ejecución
 
