@@ -10,33 +10,37 @@ import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import '@mdi/font/css/materialdesignicons.css' // Importar iconos
 
-
-// IMPORTACIÓN ADICIONAL PARA COMPONENTES MÁS AVANZADOS (COMO v-data-table)
-// Asegura que todos los componentes sean reconocidos.
-
 // Configurar colores pasteles kawaii :3
 
 const kawaiiLightTheme = {
   dark: false,
   colors: {
-    background: '#FFFBF5', // Fondo crema suave
+
+    // Fondo y superficies
+    background: '#FDF9FF', // Blanco-lavanda suave
     surface: '#FFFFFF', // Fondo de las tarjetas blanco
-    
-    // Colores más saturados (del paso anterior)
-    primary: '#F9A8D4', // Rosa pastel
-    secondary: '#A7F3D0', // Verde menta
-    info: '#BAE6FD', // Azul cielo vibrante
-    // ---------------------------
-    
-    error: '#E11D48',
-    success: '#16A34A',
-    warning: '#F59E0B',
+
     // Texto
-    'on-background': '#4B5563', // Texto sobre el fondo
-    'on-surface': '#333333', // Texto sobre las tarjetas
-    'on-primary': '#4B5563', // Texto oscuro sobre el primary (ajustado para legibilidad en el frontend)
-    'on-secondary': '#4B5563', // Texto oscuro sobre el secondary
-    'on-info': '#4B5563', // Texto oscuro sobre el info
+    'on-background': '#3A3A48', // Gris oscuro con matiz azul
+    'on-surface': '#3A3A48', 
+    'on-primary': '#FFFFFF', // Texto blanco sobre el primary 
+    'on-secondary': '#1A1A22',
+    'on-tertiary': '#1A1A22',
+    'on-accent': '#1A1A22',
+
+    // Colores principales kawaii
+    primary: '#FF86CA',   // Rosado neon pastel (Kawaii)
+    secondary: '#9DE3FF', // Celeste digital brillante estilo J-pop
+    tertiary: '#C8A7FF',  // Lavanda anime   
+
+    // Acentos */
+    accent: '#FFE679', // Amarillo pastel vibrante
+    
+    // Estados del sistema 
+    success: '#4A9F71',   // Verde jade oscuro
+    error:   '#FF6E8A',   // Rosa rojo brillante
+    warning: '#FFD36D',   // Amarillo suave
+    info:    '#9DE3FF',   // Azul celeste kawaii
   },
 }
 
@@ -48,7 +52,7 @@ const vuetify = createVuetify({
       kawaiiLightTheme,
     },
   },
-  // Usamos el spread operator para asegurarnos de que todos los componentes se registren
+  // Usamos el spread operator (...) para asegurarnos de que todos los componentes se registren
   components: {
     ...components,
   },

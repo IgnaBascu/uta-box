@@ -2,17 +2,18 @@
   <v-container class="my-8">
     <v-row justify="center">
       <v-col cols="12" md="6">
-        
-        <h1 class="text-h4 mb-2 text-center" :style="{ color: 'var(--v-theme-primary)' }">
+        <h1 class="text-h3 mb-2 text-center" :style="{ color: 'var(--v-theme-primary)' }">
           Crear Cuenta
         </h1>
-        <h2 class="text-h6 font-weight-regular text-center mb-4" :style="{ color: 'var(--color-text)' }">
+        <h2
+          class="text-h6 font-weight-regular text-center mb-4"
+          :style="{ color: 'var(--color-text)' }"
+        >
           ¡Es rápido y fácil!
         </h2>
-        
+
         <v-card elevation="4" rounded="lg">
           <v-card-text class="pa-6">
-            
             <v-alert
               v-if="registerSuccess"
               type="success"
@@ -33,18 +34,22 @@
               {{ registerError }}
             </v-alert>
 
-            <v-form @submit.prevent="handleRegister" :disabled="registerSuccess">
+            <!-- Formulario de registro -->
+            <v-form ref="form" @submit.prevent="handleRegister" :disabled="registerSuccess" lazy-validation>
+              <!-- Input nombre -->
               <v-text-field
                 v-model="nombre"
                 label="Nombre Completo"
+                :rules="nameRules"
                 prepend-inner-icon="mdi-account"
                 variant="outlined"
                 density="compact"
                 class="mb-2"
               ></v-text-field>
-
+              <!-- Input email -->
               <v-text-field
                 v-model="email"
+                :rules="emailRules"
                 label="Email"
                 type="email"
                 prepend-inner-icon="mdi-email"
@@ -52,20 +57,98 @@
                 density="compact"
                 class="mb-2"
               ></v-text-field>
-
+              <!-- Input password -->
               <v-text-field
                 v-model="password"
-                label="Contraseña (mín. 6 caracteres)"
-                type="password"
+                :rules="passwordRules"
+                label="Contraseña"                
+                :type="isPasswordVisible ? 'text' : 'password'"           
+                :append-inner-icon="isPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'" @click:append-inner="isPasswordVisible = !isPasswordVisible"
                 prepend-inner-icon="mdi-lock"
                 variant="outlined"
                 density="compact"
+                hint="La contraseña debe cumplir los siguientes requisitos:"
+                persistent-hint
               ></v-text-field>
+              <!-- Validaciones password -->
+              <v-list density="compact" class="pa-0 mt-2" bg-color="transparent">
+                <v-list-item
+                  :class="{ 'text-success': passwordRulesStatus.length }"
+                  class="pa-0"
+                  density="compact"
+                >
+                  <template v-slot:prepend>
+                    <v-icon
+                      :icon="passwordRulesStatus.length ? 'mdi-check-circle' : 'mdi-circle-small'"
+                      :color="passwordRulesStatus.length ? 'success' : 'grey'"
+                      size="small"
+                      class="mr-2"
+                    ></v-icon>
+                  </template>
+                  <v-list-item-title class="text-caption">
+                    Al menos 8 caracteres
+                  </v-list-item-title>
+                </v-list-item>
 
-              <v-btn 
-                type="submit" 
-                color="primary" 
-                block 
+                <v-list-item
+                  :class="{ 'text-success': passwordRulesStatus.upper }"
+                  class="pa-0"
+                  density="compact"
+                >
+                  <template v-slot:prepend>
+                    <v-icon
+                      :icon="passwordRulesStatus.upper ? 'mdi-check-circle' : 'mdi-circle-small'"
+                      :color="passwordRulesStatus.upper ? 'success' : 'grey'"
+                      size="small"
+                      class="mr-2"
+                    ></v-icon>
+                  </template>
+                  <v-list-item-title class="text-caption">
+                    Al menos una mayúscula (A-Z)
+                  </v-list-item-title>
+                </v-list-item>
+
+                <v-list-item
+                  :class="{ 'text-success': passwordRulesStatus.lower }"
+                  class="pa-0"
+                  density="compact"
+                >
+                  <template v-slot:prepend>
+                    <v-icon
+                      :icon="passwordRulesStatus.lower ? 'mdi-check-circle' : 'mdi-circle-small'"
+                      :color="passwordRulesStatus.lower ? 'success' : 'grey'"
+                      size="small"
+                      class="mr-2"
+                    ></v-icon>
+                  </template>
+                  <v-list-item-title class="text-caption">
+                    Al menos una minúscula (a-z)
+                  </v-list-item-title>
+                </v-list-item>
+
+                <v-list-item
+                  :class="{ 'text-success': passwordRulesStatus.number }"
+                  class="pa-0"
+                  density="compact"
+                >
+                  <template v-slot:prepend>
+                    <v-icon
+                      :icon="passwordRulesStatus.number ? 'mdi-check-circle' : 'mdi-circle-small'"
+                      :color="passwordRulesStatus.number ? 'success' : 'grey'"
+                      size="small"
+                      class="mr-2"
+                    ></v-icon>
+                  </template>
+                  <v-list-item-title class="text-caption">
+                    Al menos un número (0-9)
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
+
+              <v-btn
+                type="submit"
+                color="primary"
+                block
                 class="mt-4"
                 :loading="loading"
                 size="large"
@@ -75,10 +158,9 @@
             </v-form>
 
             <div class="text-center text-caption mt-4">
-              ¿Ya tienes una cuenta? 
+              ¿Ya tienes una cuenta?
               <router-link to="/" @click="goToLogin">Inicia sesión aquí</router-link>
             </div>
-            
           </v-card-text>
         </v-card>
       </v-col>
@@ -87,17 +169,41 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 // Usamos axios normal porque esta petición NO necesita token de autorización
-import axios from 'axios' 
+import axios from 'axios'
+// Importar reglas de validación
+import * as rules from '@/utils/validationRules'
 
 const router = useRouter()
 
 // Estado del formulario
+const form = ref(null)
 const nombre = ref('')
 const email = ref('')
 const password = ref('')
+const isPasswordVisible = ref(false)
+
+// Reglas de validación
+const nameRules = [rules.required, rules.minLength(3)]
+const emailRules = [rules.required, rules.email]
+const passwordRules = [rules.required, rules.passwordStrength]
+
+const passwordRulesStatus = ref({
+  length: false,
+  upper: false,
+  lower: false,
+  number: false,
+})
+
+watch(password, (newValue) => {
+  // En cada tecleo, actualizamos el estado del checklist
+  passwordRulesStatus.value.length = newValue && newValue.length >= 8
+  passwordRulesStatus.value.upper = /[A-Z]/.test(newValue)
+  passwordRulesStatus.value.lower = /[a-z]/.test(newValue)
+  passwordRulesStatus.value.number = /[0-9]/.test(newValue)
+})
 
 // Estado de la UI
 const loading = ref(false)
@@ -105,6 +211,11 @@ const registerError = ref(null)
 const registerSuccess = ref(false)
 
 const handleRegister = async () => {
+  const { valid } = await form.value.validate()
+  if (!valid) {
+    return // Si no es válido, detiene la función
+  }
+
   loading.value = true
   registerError.value = null
   registerSuccess.value = false
@@ -115,26 +226,26 @@ const handleRegister = async () => {
     await axios.post('http://localhost:8080/api/auth/register', {
       nombre: nombre.value,
       email: email.value,
-      password: password.value
+      password: password.value,
     })
 
     // 2. Éxito
     registerSuccess.value = true
-    
+
     // 3. Redirigimos al Home para que inicie sesión
     setTimeout(() => {
       goToLogin()
     }, 3000) // Espera 3 segundos
-
   } catch (error) {
     // 4. Error
-    console.error("Error en registro:", error)
+    console.error('Error en registro:', error)
     if (error.response && error.response.data && error.response.data.message) {
       // Esto capturará los errores 409 ("El email ya está registrado")
       // y los errores 400 de validación (ej. "La contraseña debe...")
       registerError.value = error.response.data.message
     } else {
-      registerError.value = "Error desconocido. Revisa la consola."
+      // AÑADIDO: Mensaje de error mejorado (del feedback)
+      registerError.value = 'Ocurrió un error inesperado. Intenta más tarde.'
     }
   } finally {
     loading.value = false
@@ -154,4 +265,5 @@ a {
   text-decoration: none;
   font-weight: bold;
 }
+
 </style>

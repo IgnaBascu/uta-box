@@ -10,30 +10,23 @@
   --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
 }
 
-/* semantic color variables for this project */
 :root {
-  --color-background: #FFFBF5;
-  --color-background-soft: #FDF8F2;
-  --color-background-mute: #F5F0EB;
+--color-background: black;      /* Fondo rosita suave */
+--color-background-soft: #FFEAF6; /* Paneles */
+--color-background-mute: #FFD6EB; /* Secciones muy claras */
 
-  --color-border: #E5E7EB;
-  --color-border-hover: #D1D5DB;
+--color-heading: #A7E3FF;  /* Títulos celeste pastel */
+--color-text: #5E5E5E;     /* Gris suave kawaii */
 
-  --color-heading: #D946EF;
-  --color-text: #4B5563;
+  --section-gap: 160px;  
 
-  --section-gap: 160px;
-  
-  /* * OPCIONAL: Sobrescribe las variables de Vuetify 
-   * para que usen TUS colores.
-   */
   --v-theme-background: var(--color-background);
   --v-theme-surface: var(--color-background-soft);
   --v-theme-on-surface: var(--color-text);
-  /* ...y así sucesivamente para otros colores (primary, secondary, etc.) */
+ 
 }
 
-/* Modo oscuro: DESCOMENTADO */
+/* Modo oscuro: */
 @media (prefers-color-scheme: dark) {
   :root {
     --color-background: var(--vt-c-black);
@@ -46,9 +39,6 @@
     --color-heading: var(--vt-c-text-dark-1);
     --color-text: var(--vt-c-text-dark-2);
 
-    /* * OPCIONAL: También sobrescribe las variables de Vuetify 
-     * para el modo oscuro.
-     */
     --v-theme-background: var(--color-background);
     --v-theme-surface: var(--color-background-soft);
     --v-theme-on-surface: var(--color-text);
@@ -97,4 +87,8 @@ body {
 
 .v-application {
   background: transparent !important;
+}
+
+.v-text-field .v-field__outline {
+  border-radius: 12px !important;
 }
