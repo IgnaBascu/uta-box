@@ -19,16 +19,16 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 
+import com.utabox.core_service.config.JwtAuthenticationFilter;
+
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig {
-    
-    // NOTA: Aún necesitas copiar JwtAuthenticationFilter.java 
-    // y JwtUtil.java de tu "auth-service" a este proyecto.
-    // @Autowired
-    // private JwtAuthenticationFilter jwtAuthenticationFilter;
+public class SecurityConfig {    
 
-    // (Este Bean es opcional en core-service, pero no hace daño tenerlo)
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    // Bean opcional
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -50,11 +50,10 @@ public class SecurityConfig {
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            );
+            )
             
-            // 4. AÑADIMOS EL FILTRO JWT
-            // (Asegúrate de copiar esas clases desde auth-service)
-            // .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            // 4. AÑADIMOS EL FILTRO JWT            
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

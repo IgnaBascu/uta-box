@@ -19,37 +19,44 @@ public class Activo {
     private String estado; // ej. "disponible", "mantenimiento"
 
     // --- Relación ---
-    // Muchos Activos (salas) pertenecen a un Producto (tipo de sala) 
-    @JsonBackReference   
+    // Muchos Activos (salas) pertenecen a un Producto (tipo de sala)
+    @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "producto_id", nullable = false)
-    private Producto producto;
+    @JoinColumn(name = "tipo_sala_id", nullable = false)
+    private TipoSala tipoSala;
 
-    // --- Getters y Setters ---       
+    // --- Getters y Setters ---
 
     public String getNombreSala() {
         return nombreSala;
     }
+
     public void setNombreSala(String nombreSala) {
         this.nombreSala = nombreSala;
     }
+
     public String getEstado() {
         return estado;
     }
+
     public void setEstado(String estado) {
         this.estado = estado;
     }
-    public Producto getProducto() {
-        return producto;
-    }
-    public void setProducto(Producto producto) {
-        this.producto = producto;
+
+    public Integer getIdActivo() {
+        return idActivo;
     }
 
-    public Integer getIdActivo() { return idActivo; }
+    public void setIdActivo(Integer idActivo) {
+        this.idActivo = idActivo;
+    }
 
-    public void setIdActivo(Integer idActivo) { this.idActivo = idActivo; }
-    
+    public TipoSala getTipoSala() {
+        return tipoSala;
+    }
+
+    public void setTipoSala(TipoSala tipoSala) {
+        this.tipoSala = tipoSala;
+    }
+
 }
-    
-

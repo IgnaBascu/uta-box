@@ -41,10 +41,6 @@ public class Producto {
     @Column(name = "imagen_url", columnDefinition = "text") 
     private String imagenUrl;
 
-    @JsonManagedReference
-    @OneToMany(mappedBy = "producto", fetch = FetchType.LAZY)
-    private List<Activo> activos;
-
     // Getter & Setters
 
     public Integer getIdProducto() {
@@ -109,14 +105,6 @@ public class Producto {
 
     public void setFechaActualizacion(Timestamp fechaActualizacion) {
         this.fechaActualizacion = fechaActualizacion;
-    }
-
-    public List<Activo> getActivos() {
-        return activos;
-    }
-
-    public void setActivos(List<Activo> activos) {
-        this.activos = activos;
     }
 
     public String getImagenUrl() {
