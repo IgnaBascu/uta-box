@@ -2,9 +2,6 @@ package com.utabox.core_service.model;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.*;
 

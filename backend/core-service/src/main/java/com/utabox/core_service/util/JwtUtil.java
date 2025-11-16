@@ -1,64 +1,37 @@
-package com.utabox.core_service.util;
+package com.utabox.core_service.util; // ¡Paquete corregido!
 
-import com.utabox.core_service.model.Usuario;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
+import java.util.Date;
+import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 
-import javax.crypto.SecretKey;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-@Component // Le dice a Spring que gestione esta clase (para poder inyectarla)
+@Component
 public class JwtUtil {
 
-    // Estas variables las leeremos desde application.properties
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration}")
-    private Long expiration;
-
-    // Método principal para crear un token
-    public String generateToken(Usuario usuario) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("rol", usuario.getRol());
-        claims.put("id", usuario.getIdUsuario());
-        
-        return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(usuario.getEmail()) // El "dueño" del token
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                .compact();
-    }
-    
-    // Método para crear la "llave secreta" a partir del string
     private SecretKey getSigningKey() {
-        // Decodifica la llave secreta (que está en Base64)
         byte[] keyBytes = java.util.Base64.getDecoder().decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // (Más adelante, otros servicios usarán estos métodos para validar el token)
-    
+    // Valida y extrae TODOS los datos (claims)
     public Claims getClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+                .setSigningKey(getSigningKey())                
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
-
-    public boolean isTokenValid(String token) {
+    
+    // Comprueba si el token ha expirado
+    public boolean isTokenValid(String token) { // Cambiado de isTokenExpired
         try {
-            getClaims(token);
-            return true;
+            return !getClaims(token).getExpiration().before(new Date());
         } catch (Exception e) {
             return false;
         }

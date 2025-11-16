@@ -3,9 +3,10 @@ package com.utabox.core_service.dto;
 import java.sql.Timestamp;
 import java.util.List;
 
+
 public class ReservaRequestDTO {
     
-    // El ID de la sala física (ej. Sala "Budokan")
+    // El ID de la sala física (ej. Sala "Budokan")    
     private Integer activoId;
 
     // La fecha/hora de inicio que quiere el cliente
@@ -18,6 +19,7 @@ public class ReservaRequestDTO {
     private List<ConsumibleRequestDTO> consumibles;
 
     // Getters & Setters
+
 
     public Integer getActivoId() {
         return activoId;

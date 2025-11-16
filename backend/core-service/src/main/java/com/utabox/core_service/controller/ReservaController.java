@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.utabox.core_service.dto.ProductoDTO;
 import com.utabox.core_service.dto.ReservaRequestDTO;
 import com.utabox.core_service.model.PedidosConsumibles;
 import com.utabox.core_service.model.Producto;
@@ -29,6 +28,8 @@ import com.utabox.core_service.model.Reserva;
 import com.utabox.core_service.repository.PedidosConsumiblesRepository;
 import com.utabox.core_service.repository.ProductoRepository;
 import com.utabox.core_service.repository.ReservaRepository;
+
+import org.springframework.lang.NonNull;
 
 @RestController
 @RequestMapping("api/reservas")
@@ -45,76 +46,90 @@ public class ReservaController {
 
     // Endpoint GET para ver la agenda de una sala
     @GetMapping("/activo/{id}")
-    public ResponseEntity<List<Reserva>> getAgendaDeSala(@PathVariable Integer id) {
+    public ResponseEntity<List<Reserva>> getAgendaDeSala(@PathVariable @NonNull Integer id) {
         List<Reserva> agenda = reservaRepository.findByActivoId(id);
         return ResponseEntity.ok(agenda);
     }
 
     // Endpoint POST cliente para crear una reserva
     @PostMapping("/reservar")
-    public ResponseEntity<Reserva> crearReserva(@RequestBody ReservaRequestDTO request,
-            @RequestHeader("X-Usuario-Id") Integer usuarioId,
+    public ResponseEntity<Reserva> crearReserva(
+            @RequestBody ReservaRequestDTO request,
+            @RequestHeader("X-Usuario-Id") @NonNull Integer usuarioId, // <-- Añade @NonNull aquí
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
 
-        // --- 1. VALIDAR DISPONIBILIDAD DE HORARIO ---
+        // --- 0. VALIDACIÓN MANUAL DE DATOS REQUERIDOS ---
+        if (request.getActivoId() == null || request.getFechaInicio() == null || request.getFechaTermino() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Los campos activoId, fechaInicio y fechaTermino no pueden ser nulos.");
+        }
+
+        // --- 1. VALIDAR DISPONIBILIDAD DE HORARIO (ARREGLO LÍNEA 72) ---
         Integer overlappingCount = reservaRepository.countOverlappingReservations(
                 request.getActivoId(),
                 request.getFechaInicio(),
                 request.getFechaTermino());
 
-        if (overlappingCount > 0) {
+        // ¡AQUÍ ESTÁ EL ARREGLO! Comprobamos si es nulo antes de compararlo.
+        if (overlappingCount != null && overlappingCount > 0) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "El horario seleccionado para esta sala ya no está disponible.");
         }
 
-        // --- 2. OBTENER DATOS DE LA SALA (WebClient GET) ---
+        // --- 2. OBTENER DATOS DE LA SALA (ARREGLO LÍNEA 77) ---
+        // (La comprobación de null en el Paso 0 arregla este error)
         Producto salaProducto = productoRepository.findById(request.getActivoId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "No se pudo obtener el precio de la sala."));
 
-        // --- 3. CÁLCULO DE PRECIO DE SALA (POR HORAS) ---
+        // --- 3. CÁLCULO DE PRECIO DE SALA (Sin cambios) ---
         BigDecimal precioPorHoraSala = salaProducto.getPrecio();
         Instant inicio = request.getFechaInicio().toInstant();
         Instant termino = request.getFechaTermino().toInstant();
-
-        // Calcula minutos y los convierte a horas con 2 decimales
         long minutosReservados = ChronoUnit.MINUTES.between(inicio, termino);
         BigDecimal horasReservadas = new BigDecimal(minutosReservados)
                 .divide(new BigDecimal(60), 2, RoundingMode.HALF_UP);
-
         BigDecimal precioSalaCalculado = precioPorHoraSala.multiply(horasReservadas);
 
-        // --- 4. INICIALIZAR RESERVA Y TOTALES ---
-        BigDecimal totalConsumibles = BigDecimal.ZERO; // Contador para consumibles
-
+        // --- 4. INICIALIZAR RESERVA Y TOTALES (Sin cambios) ---
+        BigDecimal totalConsumibles = BigDecimal.ZERO;
         Reserva nuevaReserva = new Reserva();
         nuevaReserva.setUsuarioId(usuarioId);
-        nuevaReserva.setPrecioTotalSala(precioSalaCalculado); // Asigna el precio por hora
+        nuevaReserva.setPrecioTotalSala(precioSalaCalculado);
         nuevaReserva.setActivoId(request.getActivoId());
         nuevaReserva.setFechaInicio(request.getFechaInicio());
         nuevaReserva.setFechaTermino(request.getFechaTermino());
         nuevaReserva.setFechaReservaCreada(new Timestamp(System.currentTimeMillis()));
         nuevaReserva.setEstado("confirmada");
 
-        // --- 5. PROCESAR CONSUMIBLES (Bucle) ---
+        // --- 5. PROCESAR CONSUMIBLES (ARREGLO LÍNEA 107) ---
         List<PedidosConsumibles> listaConsumibles = new ArrayList<>();
+
+        // Esta lógica SÍ permite que la lista de consumibles sea nula o vacía
         if (request.getConsumibles() != null && !request.getConsumibles().isEmpty()) {
 
             for (var itemDto : request.getConsumibles()) {
 
-                // 5a. OBTENER DATOS DEL CONSUMIBLE (Local)
+                // ¡AQUÍ ESTÁ EL ARREGLO! Validamos los datos del item ANTES de usarlos.
+                if (itemDto.getProductoId() == null || itemDto.getCantidad() == null || itemDto.getCantidad() <= 0) {
+                    // Si el cliente envía un consumible malformado, lo rechazamos.
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Los consumibles deben tener un productoId y una cantidad válida (mayor a 0).");
+                }
+
+                // 5a. OBTENER DATOS DEL CONSUMIBLE
                 Producto consumibleProducto = productoRepository.findById(itemDto.getProductoId())
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                 "Consumible no encontrado ID: " + itemDto.getProductoId()));
 
-                // 5b. VALIDAR TIPO (Queda igual)
+                // 5b. VALIDAR TIPO
                 String tipo = consumibleProducto.getTipo();
                 if ("sala".equals(tipo)) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El producto ID: "
                             + itemDto.getProductoId() + " es una 'sala' y no puede ser añadido como consumible.");
                 }
 
-                // 5c. REDUCIR STOCK (Local)
+                // 5c. REDUCIR STOCK (Ahora es seguro)
                 if (consumibleProducto.getStock() < itemDto.getCantidad()) {
                     throw new ResponseStatusException(HttpStatus.CONFLICT,
                             "No hay stock suficiente para el producto ID: " + itemDto.getProductoId());
@@ -125,29 +140,26 @@ public class ReservaController {
                 // 5d. CALCULAR SUBTOTALES
                 BigDecimal precioUnitario = consumibleProducto.getPrecio();
                 BigDecimal cantidad = new BigDecimal(itemDto.getCantidad());
-
                 BigDecimal subtotalItem = precioUnitario.multiply(cantidad);
-                totalConsumibles = totalConsumibles.add(subtotalItem); // Sumamos al total
+                totalConsumibles = totalConsumibles.add(subtotalItem);
 
                 // 5e. PREPARAR PEDIDO
                 PedidosConsumibles consumible = new PedidosConsumibles();
                 consumible.setProductoId(itemDto.getProductoId());
                 consumible.setCantidad(itemDto.getCantidad());
-                consumible.setPrecioUnitarioOriginal(precioUnitario); // Guardamos el precio unitario
+                consumible.setPrecioUnitarioOriginal(precioUnitario);
                 consumible.setReserva(nuevaReserva);
                 listaConsumibles.add(consumible);
             }
         }
 
-        // --- 6. SETEAR TOTALES FINALES ---
+        // --- 6. SETEAR TOTALES FINALES (Sin cambios) ---
         BigDecimal granTotal = precioSalaCalculado.add(totalConsumibles);
-
         nuevaReserva.setPrecioTotalConsumibles(totalConsumibles);
         nuevaReserva.setPrecioTotalGeneral(granTotal);
 
-        // --- 7. GUARDAR todo EN BD ---
+        // --- 7. GUARDAR todo EN BD (Sin cambios) ---
         Reserva reservaGuardada = reservaRepository.save(nuevaReserva);
-
         if (!listaConsumibles.isEmpty()) {
             pedidosConsumiblesRepository.saveAll(listaConsumibles);
             reservaGuardada.setConsumibles(listaConsumibles);

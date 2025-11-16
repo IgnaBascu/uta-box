@@ -19,8 +19,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 
-import com.utabox.core_service.config.JwtAuthenticationFilter;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {    
