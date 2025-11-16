@@ -135,6 +135,7 @@
               prepend-inner-icon="mdi-email"
               variant="outlined"
               density="compact"
+              @blur="email = email.toLowerCase()"
             ></v-text-field>
 
             <v-text-field
@@ -237,10 +238,9 @@ watch(
 const handleLogin = async () => {
   loading.value = true
   loginError.value = null
-  try {
-    // Llamamos a API de Gateway (sin 'api.js' porque aún no tenemos token)
+  try {    
     const response = await axios.post('http://localhost:8080/api/auth/login', {
-      email: email.value,
+      email: email.value.toLowerCase(),
       password: password.value,
     })
 

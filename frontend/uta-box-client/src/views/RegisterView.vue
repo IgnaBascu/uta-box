@@ -57,6 +57,7 @@
                 density="compact"
                 class="mb-2"
                 rounded="lg"
+                @blur="email = email.toLowerCase()"
               ></v-text-field>
               <!-- Input password -->
               <v-text-field
@@ -227,7 +228,7 @@ const handleRegister = async () => {
     // Esta es la misma URL que usa tu modal de login
     await axios.post('http://localhost:8080/api/auth/register', {
       nombre: nombre.value,
-      email: email.value,
+      email: email.value.toLowerCase(),
       password: password.value,
     })
 
