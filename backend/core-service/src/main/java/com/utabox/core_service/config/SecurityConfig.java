@@ -35,15 +35,18 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // 1. AÑADIMOS CORS
-            .cors(cors -> cors.configurationSource(createCorsConfigSource()))
-            
+            // 1. Cors y csrf
+            .cors(cors -> cors.configurationSource(createCorsConfigSource()))            
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authz -> authz
                 // 2. Hacemos públicas las rutas GET de catalogo y agenda
                 .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/reservas/activo/**").permitAll()
-                // 3. El resto de rutas (como /api/reservas/reservar) SÍ necesitan autenticación
+                // 3. Rutas admin
+                .requestMatchers(HttpMethod.POST, "/api/productos/**").hasRole("Admin")
+                .requestMatchers(HttpMethod.PUT, "/api/productos/**").hasRole("Admin")
+                .requestMatchers(HttpMethod.DELETE, "/api/productos/**").hasRole("Admin")
+                // 4. El resto de rutas SÍ necesitan autenticación (Admin o Cliente)
                 .anyRequest().authenticated() 
             )
             .sessionManagement(session -> session
