@@ -1,12 +1,8 @@
 <template>
   <v-app>
-    <!-- 1. BARRA DE NAVEGACIÓN -->
     <v-app-bar app color="primary" density="compact" elevation="2">
-      <!-- ¡AQUÍ ESTÁ EL ARREGLO! -->
+      <v-spacer></v-spacer>
       <v-toolbar-title class="font-weight-bold">
-        <!-- 1. Quité 'd-flex align-center' de aquí... -->
-
-        <!-- 2. ...y lo puse en un <div> interno -->
         <div class="d-flex align-center">
           <v-img
             :src="appIcon"
@@ -16,59 +12,85 @@
             max-width="36"
             class="mr-2"
           />
-          <!-- 3. Envolví el texto en un <span> para más seguridad -->
           <span>UTA-BOX</span>
         </div>
       </v-toolbar-title>
-      <!-- FIN DEL ARREGLO -->
 
-      <v-spacer></v-spacer>
-
-      <!-- Botón de Home (siempre visible) -->
-      <v-btn to="/" prepend-icon="mdi-home">Home</v-btn>
-
-      <!-- Botón de Reservar (siempre visible) -->
-      <v-btn to="/reservar" prepend-icon="mdi-calendar-check">Reservar</v-btn>
-
-      <!-- Botón de Admin (SÓLO si eres admin) -->
-      <v-btn v-if="isAdmin" to="/admin" prepend-icon="mdi-security"> Panel Admin </v-btn>
-
-      <v-btn v-if="isLoggedIn" @click="handleLogout" prepend-icon="mdi-logout"> Logout </v-btn>
-
-      <v-chip v-if="isLoggedIn" color="surface" variant="flat" class="font-weight-bold mr-3">
-        <v-icon start icon="mdi-account-circle"></v-icon>
-        {{ userName }} ({{ userRol }})
-      </v-chip>
-
-      <v-btn v-if="!isLoggedIn" @click="loginModal = true" prepend-icon="mdi-login"> Login </v-btn>
-
-      <v-btn
-        v-if="!isLoggedIn"
-        to="/register"
-        prepend-icon="mdi-account-plus-outline"
-        variant="text"
+      <v-btn to="/" prepend-icon="mdi-home" class="app-bar-btn">Inicio</v-btn>
+      <v-btn to="/nosotros" prepend-icon="mdi-information-outline" class="app-bar-btn"
+        >Nosotros</v-btn
       >
-        Registrarse
+      <v-btn v-if="isLoggedIn" to="/reservar" prepend-icon="mdi-calendar-check" class="app-bar-btn">
+        Reservar
       </v-btn>
-  
+      <v-btn v-if="isAdmin" to="/admin" prepend-icon="mdi-security" class="app-bar-btn">
+        Panel Admin
+      </v-btn>
+
+      <div class="mr-3">
+        <v-menu v-if="isLoggedIn" offset-y>
+          <template v-slot:activator="{ props }">
+            <v-chip
+              color="surface"
+              variant="flat"
+              class="font-weight-bold"
+              v-bind="props"
+              style="cursor: pointer"
+            >
+              <v-icon start icon="mdi-account-circle"></v-icon>
+              {{ userName }}
+              <v-icon end icon="mdi-chevron-down"></v-icon>
+            </v-chip>
+          </template>
+          <v-list density="compact">
+            <v-list-item
+              @click="logoutDialog = true"
+              prepend-icon="mdi-logout"
+              class="menu-item-hover"
+            >
+              <v-list-item-title>Cerrar Sesión</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+
+        <v-menu v-if="!isLoggedIn" offset-y>
+          <template v-slot:activator="{ props }">
+            <v-chip
+              v-bind="props"
+              color="accent"
+              variant="flat"
+              class="font-weight-bold"
+              style="cursor: pointer"
+            >
+              Hola, ingresa acá!
+              <v-icon end icon="mdi-chevron-down"></v-icon>
+            </v-chip>
+          </template>
+          <v-list density="compact">
+            <v-list-item @click="loginModal = true" class="menu-item-hover">
+              <v-list-item-title>Inicia sesión</v-list-item-title>
+            </v-list-item>
+            <v-list-item to="/register" class="menu-item-hover">
+              <v-list-item-title>Regístrate</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </div>
+      <v-spacer></v-spacer>
     </v-app-bar>
 
-    <!-- 2. CONTENIDO DE LA PÁGINA (aquí se cargan las vistas del router) -->
     <v-main>
       <router-view />
     </v-main>
 
-    <!-- 3. FOOTER -->
     <v-footer app class="d-flex justify-center" color="primary" height="40">
       <div class="text-caption">Uta-Box Karaoke &copy; {{ new Date().getFullYear() }}</div>
     </v-footer>
 
-    <!-- 4. DIÁLOGO (MODAL) DE LOGIN -->
     <v-dialog v-model="loginModal" max-width="400">
       <v-card class="pa-4" rounded="lg">
         <v-card-title class="text-h5 text-center"> Iniciar Sesión </v-card-title>
         <v-card-text>
-          <!-- Modal debes iniciar sesión para reservar -->
           <v-alert
             v-if="route.query.login === 'true'"
             type="info"
@@ -79,12 +101,10 @@
           >
             Debes iniciar sesión para poder reservar.
           </v-alert>
-          <!-- Mensaje de Error -->
           <v-alert v-if="loginError" type="error" variant="tonal" class="mb-4" density="compact">
             {{ loginError }}
           </v-alert>
 
-          <!-- Formulario -->
           <v-form @submit.prevent="handleLogin">
             <v-text-field
               v-model="email"
@@ -109,6 +129,19 @@
             </v-btn>
           </v-form>
         </v-card-text>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="logoutDialog" max-width="400" persistent>
+      <v-card class="pa-4" rounded="lg">
+        <v-card-title class="text-h5 text-center"> Cerrar Sesión </v-card-title>
+        <v-card-text class="text-center"> ¿Estás seguro de que quieres salir? </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="grey" variant="tonal" @click="logoutDialog = false"> Cancelar </v-btn>
+          <v-btn color="primary" variant="flat" @click="handleLogout"> Sí, Salir </v-btn>
+          <v-spacer></v-spacer>
+        </v-card-actions>
       </v-card>
     </v-dialog>
   </v-app>
@@ -136,6 +169,7 @@ const loading = ref(false)
 const email = ref('')
 const password = ref('')
 const loginError = ref(null)
+const logoutDialog = ref(false)
 
 // --- Lógica ---
 
@@ -217,7 +251,47 @@ const handleLogout = () => {
   localStorage.removeItem('rol')
   localStorage.removeItem('nombre')
   checkAuthStatus()
+  logoutDialog.value = false
   // Lo mandamos al Home
   router.push('/')
 }
 </script>
+
+<style scoped>
+/* Ajuste para los botones de la barra (Deslogueado) */
+.app-bar-btn {
+  /* Usa 'surface' (blanco) para que contraste con la barra rosa */
+  color: var(--v-theme-surface) !important;
+  /* Esto hace que el borde del botón 'outlined' también sea blanco */
+  border-color: var(--v-theme-surface);
+  text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* (Puedes añadir más estilos aquí si quieres) */
+a {
+  color: var(--v-theme-primary);
+  text-decoration: none;
+  font-weight: bold;
+}
+
+/* Sombra para el texto del Logo (UTA-BOX) y el botón "Inicio" */
+.v-toolbar-title span,
+.v-btn {
+  text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.menu-item-hover {
+  cursor: pointer !important;
+  transition: all 0.2s ease;
+}
+
+.menu-item-hover:hover {
+  background-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.banner-extension {
+  width: 100vw !important; /* fuerza el 100% del ancho de la ventana */
+  margin-left: calc(50% - 50vw); /* elimina padding del app-bar */
+  margin-right: calc(50% - 50vw);
+}
+</style>

@@ -2,17 +2,16 @@
   <v-container class="my-8">
     <v-row justify="center">
       <v-col cols="12" md="6">
-        <h1 class="text-h3 mb-2 text-center" :style="{ color: 'var(--v-theme-primary)' }">
-          Crear Cuenta
+        <h1 class="text-h3 mb-2 text-center title-kawaii titulo">
+          ¡Vamos a cantar!
         </h1>
-        <h2
-          class="text-h6 font-weight-regular text-center mb-4"
+        <h2 class="text-subtitle-1 font-weight-regular text-center mb-4"
           :style="{ color: 'var(--color-text)' }"
         >
-          ¡Es rápido y fácil!
+          🎤 Crea tu cuenta ✨
         </h2>
 
-        <v-card elevation="4" rounded="lg">
+        <v-card elevation="4" rounded="xl">
           <v-card-text class="pa-6">
             <v-alert
               v-if="registerSuccess"
@@ -39,23 +38,25 @@
               <!-- Input nombre -->
               <v-text-field
                 v-model="nombre"
-                label="Nombre Completo"
+                label="Nombre completo"
                 :rules="nameRules"
                 prepend-inner-icon="mdi-account"
                 variant="outlined"
                 density="compact"
                 class="mb-2"
+                rounded="lg"
               ></v-text-field>
               <!-- Input email -->
               <v-text-field
                 v-model="email"
                 :rules="emailRules"
-                label="Email"
+                label="Correo electrónico"
                 type="email"
                 prepend-inner-icon="mdi-email"
                 variant="outlined"
                 density="compact"
                 class="mb-2"
+                rounded="lg"
               ></v-text-field>
               <!-- Input password -->
               <v-text-field
@@ -69,13 +70,15 @@
                 density="compact"
                 hint="La contraseña debe cumplir los siguientes requisitos:"
                 persistent-hint
+                rounded="lg"
+
               ></v-text-field>
               <!-- Validaciones password -->
               <v-list density="compact" class="pa-0 mt-2" bg-color="transparent">
                 <v-list-item
                   :class="{ 'text-success': passwordRulesStatus.length }"
                   class="pa-0"
-                  density="compact"
+                  density="tight"
                 >
                   <template v-slot:prepend>
                     <v-icon
@@ -93,7 +96,7 @@
                 <v-list-item
                   :class="{ 'text-success': passwordRulesStatus.upper }"
                   class="pa-0"
-                  density="compact"
+                  density="tight"
                 >
                   <template v-slot:prepend>
                     <v-icon
@@ -111,7 +114,7 @@
                 <v-list-item
                   :class="{ 'text-success': passwordRulesStatus.lower }"
                   class="pa-0"
-                  density="compact"
+                  density="tight"
                 >
                   <template v-slot:prepend>
                     <v-icon
@@ -129,7 +132,7 @@
                 <v-list-item
                   :class="{ 'text-success': passwordRulesStatus.number }"
                   class="pa-0"
-                  density="compact"
+                  density="tight"
                 >
                   <template v-slot:prepend>
                     <v-icon
@@ -146,14 +149,13 @@
               </v-list>
 
               <v-btn
-                type="submit"
-                color="primary"
+                type="submit"                
                 block
-                class="mt-4"
+                class="mt-4 gradient-btn"
                 :loading="loading"
                 size="large"
               >
-                Registrarme
+                Crear cuenta
               </v-btn>
             </v-form>
 
@@ -264,6 +266,16 @@ a {
   color: var(--v-theme-primary);
   text-decoration: none;
   font-weight: bold;
+}
+
+.gradient-btn {
+  background: linear-gradient(90deg, #ff9ad5, #ff7acb);
+  color: white !important;
+  border-radius: 12px;
+}
+
+.titulo {
+  font-weight: 700;
 }
 
 </style>
