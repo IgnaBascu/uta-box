@@ -29,7 +29,7 @@ import com.utabox.core_service.repository.PedidosConsumiblesRepository;
 import com.utabox.core_service.repository.ProductoRepository;
 import com.utabox.core_service.repository.ReservaRepository;
 
-import org.springframework.lang.NonNull;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("api/reservas")
@@ -46,7 +46,7 @@ public class ReservaController {
 
     // Endpoint GET para ver la agenda de una sala
     @GetMapping("/activo/{id}")
-    public ResponseEntity<List<Reserva>> getAgendaDeSala(@PathVariable @NonNull Integer id) {
+    public ResponseEntity<List<Reserva>> getAgendaDeSala(@PathVariable Integer id) {
         List<Reserva> agenda = reservaRepository.findByActivoId(id);
         return ResponseEntity.ok(agenda);
     }
@@ -55,7 +55,7 @@ public class ReservaController {
     @PostMapping("/reservar")
     public ResponseEntity<Reserva> crearReserva(
             @RequestBody ReservaRequestDTO request,
-            @RequestHeader("X-Usuario-Id") @NonNull Integer usuarioId, // <-- Añade @NonNull aquí
+            @RequestHeader("X-Usuario-Id") Integer usuarioId, // <-- Añade @NonNull aquí
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
 
         // --- 0. VALIDACIÓN MANUAL DE DATOS REQUERIDOS ---
@@ -63,6 +63,8 @@ public class ReservaController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Los campos activoId, fechaInicio y fechaTermino no pueden ser nulos.");
         }
+
+        Integer activoId = Objects.requireNonNull(request.getActivoId(), "activoId no puede ser null");
 
         // --- 1. VALIDAR DISPONIBILIDAD DE HORARIO (ARREGLO LÍNEA 72) ---
         Integer overlappingCount = reservaRepository.countOverlappingReservations(
@@ -78,7 +80,7 @@ public class ReservaController {
 
         // --- 2. OBTENER DATOS DE LA SALA (ARREGLO LÍNEA 77) ---
         // (La comprobación de null en el Paso 0 arregla este error)
-        Producto salaProducto = productoRepository.findById(request.getActivoId())
+        Producto salaProducto = productoRepository.findById(activoId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "No se pudo obtener el precio de la sala."));
 
@@ -118,9 +120,13 @@ public class ReservaController {
                 }
 
                 // 5a. OBTENER DATOS DEL CONSUMIBLE
-                Producto consumibleProducto = productoRepository.findById(itemDto.getProductoId())
+                Integer productoId = Objects.requireNonNull(
+                        itemDto.getProductoId(),
+                        "productoId no puede ser null");
+
+                Producto consumibleProducto = productoRepository.findById(productoId)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                                "Consumible no encontrado ID: " + itemDto.getProductoId()));
+                                "Consumible no encontrado ID: " + productoId));
 
                 // 5b. VALIDAR TIPO
                 String tipo = consumibleProducto.getTipo();
