@@ -174,7 +174,23 @@
               <div class="text-body-1 mb-2 text-justify" style="min-height: 60px">
                 {{ sala.descripcion }}
               </div>
-              <div class="text-h6 font-weight-bold text-center" style="color: #d946ef">
+            <v-list-item
+              prepend-icon="mdi-account-group"
+              title="Capacidad"
+              subtitle="Hasta 10 personas"
+            ></v-list-item>
+            <v-list-item
+              prepend-icon="mdi-television-classic"
+              title="Equipamiento"
+              subtitle='Pantalla 65\" 4K, Micrófonos Pro, Luces DMX, '
+              lines="three"
+            ></v-list-item>
+            <v-list-item
+              prepend-icon="mdi-sofa"
+              title="Temática"
+              subtitle="Estilo estadio Budokan para conciertos multitudinarios"
+            ></v-list-item>
+                          <div class="text-h6 font-weight-bold text-center mt-2" style="color: #d946ef">
                 ${{ sala.precio.toLocaleString('es-CL') }} / hora
               </div>
             </v-card-text>

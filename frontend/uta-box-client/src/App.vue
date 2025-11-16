@@ -83,9 +83,31 @@
       <router-view />
     </v-main>
 
-    <v-footer app class="d-flex justify-center" color="primary" height="40">
-      <div class="text-caption">Uta-Box Karaoke &copy; {{ new Date().getFullYear() }}</div>
+    <!-- Footer -->
+    <v-footer app class="pa-4" color="primary" height="auto">
+      <v-container>
+        <v-row justify="center">
+          <v-col cols="12" class="text-center">
+            <div class="text-caption footer-text">
+              <span>
+                <v-icon size="small" left>mdi-map-marker</v-icon>
+                Av. Ficticia 123, Santiago
+              </span>
+              <span class="mx-3 d-none d-sm-inline">|</span>
+              <span class="d-block d-sm-inline mt-1 mt-sm-0">
+                <v-icon size="small" left>mdi-clock</v-icon>
+                Lunes a Domingo, 11:00 - 20:00
+              </span>
+              <span class="mx-3 d-none d-sm-inline">|</span>
+              <span class="d-block d-sm-inline mt-1 mt-sm-0">
+                Uta-Box Karaoke &copy; {{ new Date().getFullYear() }}
+              </span>
+            </div>
+          </v-col>
+        </v-row>
+      </v-container>
     </v-footer>
+    <!-- Fin Footer -->
 
     <v-dialog v-model="loginModal" max-width="400">
       <v-card class="pa-4" rounded="lg">
@@ -293,5 +315,11 @@ a {
   width: 100vw !important; /* fuerza el 100% del ancho de la ventana */
   margin-left: calc(50% - 50vw); /* elimina padding del app-bar */
   margin-right: calc(50% - 50vw);
+}
+
+.footer-text {
+  /* Sombra negra suave para que el texto blanco resalte */
+  text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.5);
+  color: white !important; /* Fuerza el color blanco */
 }
 </style>

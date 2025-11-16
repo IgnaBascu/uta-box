@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import AdminView from '../views/AdminView.vue'
 import BookingView from '../views/BookingView.vue'
 import RegisterView from '../views/RegisterView.vue'
+import AboutView from '../views/AboutView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -16,6 +17,11 @@ const router = createRouter({
       path: '/register',
       name: 'register',
       component: RegisterView
+    },
+    {
+      path: '/nosotros',
+      name: 'about',
+      component: AboutView,
     },
     {
       path: '/reservar/:id?',

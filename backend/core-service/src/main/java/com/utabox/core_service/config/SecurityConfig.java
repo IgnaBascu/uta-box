@@ -1,66 +1,70 @@
-package com.utabox.auth_service.config;
+// Asegúrate de que el package sea el correcto:
+package com.utabox.core_service.config; 
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod; // ¡Importante!
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // Necesario si copiaste el filtro
+import org.springframework.security.crypto.password.PasswordEncoder; // Necesario si copiaste el filtro
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-// Importaciones para CORS
+// --- IMPORTACIONES PARA CORS ---
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 
-@Configuration // Le dice a Spring que esta es una clase de configuración
-@EnableWebSecurity // Activa la seguridad web
+@Configuration
+@EnableWebSecurity
 public class SecurityConfig {
     
-    @Autowired
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    // NOTA: Aún necesitas copiar JwtAuthenticationFilter.java 
+    // y JwtUtil.java de tu "auth-service" a este proyecto.
+    // @Autowired
+    // private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    // 1. Definimos el "Bean" (componente) del encriptador
+    // (Este Bean es opcional en core-service, pero no hace daño tenerlo)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // 2. Definimos las reglas de seguridad
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(createCorsConfigSource())) // Config CORS
-            .csrf(csrf -> csrf.disable()) // Desactivamos CSRF (común en APIs REST)
+            // 1. AÑADIMOS CORS
+            .cors(cors -> cors.configurationSource(createCorsConfigSource()))
+            
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authz -> authz
-                // 3. Hacemos públicos nuestros endpoints de autenticación
-                .requestMatchers("/api/auth/login", "/api/auth/register").permitAll() 
-                // 4. Todas las demás peticiones deben estar autenticadas (lo veremos con JWT)
+                // 2. Hacemos públicas las rutas GET de catalogo y agenda
+                .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/reservas/activo/**").permitAll()
+                // 3. El resto de rutas (como /api/reservas/reservar) SÍ necesitan autenticación
                 .anyRequest().authenticated() 
             )
-            // 5. Le decimos que no use "sesiones" (usaremos JWT)
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-        // (Aquí añadiremos el filtro JWT más adelante)
+            );
+            
+            // 4. AÑADIMOS EL FILTRO JWT
+            // (Asegúrate de copiar esas clases desde auth-service)
+            // .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // 3. Método Configuración CORS
-
+    // 5. AÑADIMOS EL MÉTODO DE CORS
     @Bean
     public CorsConfigurationSource createCorsConfigSource() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
 
-        // El puerto de tu frontend Vue
         config.setAllowedOrigins(Arrays.asList(
             "http://localhost:5173", 
             "http://127.0.0.1:5173"
@@ -70,7 +74,6 @@ public class SecurityConfig {
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowCredentials(true); 
 
-        // Aplica esta configuración a todas las rutas de este servicio
         source.registerCorsConfiguration("/**", config); 
         return source;
     }
