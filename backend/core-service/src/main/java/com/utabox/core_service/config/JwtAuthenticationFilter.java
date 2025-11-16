@@ -28,14 +28,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
-            @NonNull HttpServletRequest request, // <-- 2. AÑADE @NonNull
-            @NonNull HttpServletResponse response, // <-- 2. AÑADE @NonNull
-            @NonNull FilterChain filterChain) // <-- 2. AÑADE @NonNull
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response, 
+            @NonNull FilterChain filterChain) 
             throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
+        final String jwt;        
         final String userRol;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -48,15 +47,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             if (jwtUtil.isTokenValid(jwt)) {
                 Claims claims = jwtUtil.getClaims(jwt);
-                userEmail = claims.getSubject();
+                // 1. EXTRAER EL ID DEL CLAIM (ADEMÁS DEL ROL)                
+                Integer usuarioId = claims.get("id", Integer.class); 
                 userRol = claims.get("rol", String.class); 
 
-                if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                if (usuarioId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     
                     List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + userRol));
                     
+                    // 2. USAR EL ID COMO EL "PRINCIPAL"
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userEmail,
+                            usuarioId, 
                             null,      
                             authorities
                     );
