@@ -1,5 +1,3 @@
-// Lógica del negocio
-
 package com.utabox.auth_service.service;
 
 import com.utabox.auth_service.dto.AuthRequestDTO;
