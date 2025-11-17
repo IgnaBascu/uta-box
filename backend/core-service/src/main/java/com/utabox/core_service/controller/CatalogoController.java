@@ -15,11 +15,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.utabox.core_service.model.TipoSala; 
+import com.utabox.core_service.repository.TipoSalaRepository; 
+
 import com.utabox.core_service.dto.ProductoRequestDTO;
 import com.utabox.core_service.model.Producto;
-import com.utabox.core_service.model.TipoSala; // Importa el nuevo modelo
 import com.utabox.core_service.repository.ProductoRepository;
-import com.utabox.core_service.repository.TipoSalaRepository; // Importa el nuevo repo
 
 import jakarta.validation.Valid;
 import org.springframework.lang.NonNull;
@@ -32,14 +33,64 @@ public class CatalogoController {
     private ProductoRepository productoRepository;
 
     @Autowired
-    private TipoSalaRepository tipoSalaRepository; // Inyecta el repo de TipoSala
+    private TipoSalaRepository tipoSalaRepository; 
 
-    // Endpoint GET para obtener listado de salas (AHORA USA TIPOSALA)
+    // -- CRUD DE SALAS --
+
+    // Endpoint GET para obtener listado de salas
     @GetMapping("/salas")
     public ResponseEntity<List<TipoSala>> getTiposDeSala() {
         List<TipoSala> salas = tipoSalaRepository.findAll();
         return ResponseEntity.ok(salas);
     }
+
+    // Endpoint POST para crear un nuevo tipo de sala (No activos)
+    @PostMapping("/salas")
+    public ResponseEntity<TipoSala> crearTipoSala(@Valid @RequestBody @NonNull TipoSala tipoSala) {
+        TipoSala salaGuardada = tipoSalaRepository.save(tipoSala);
+        return ResponseEntity.status(201).body(salaGuardada);
+    }
+
+    // Endpoint PUT para actualizar los datos de tipo de sala
+    @PutMapping("/salas/{id}")
+    public ResponseEntity<TipoSala> actualizarTipoSala(@PathVariable @NonNull Integer id, @Valid @RequestBody TipoSala salaActualizada) {
+        
+        Optional<TipoSala> salaExistente = tipoSalaRepository.findById(id);
+        if (salaExistente.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        TipoSala dbSala = salaExistente.get();
+        dbSala.setNombre(salaActualizada.getNombre());
+        dbSala.setDescripcion(salaActualizada.getDescripcion());
+        dbSala.setTematica(salaActualizada.getTematica());
+        dbSala.setEquipamiento(salaActualizada.getEquipamiento());
+        dbSala.setCapacidad(salaActualizada.getCapacidad());
+        dbSala.setPrecioHora(salaActualizada.getPrecioHora());
+        dbSala.setImagenUrl(salaActualizada.getImagenUrl());
+
+        TipoSala salaGuardada = tipoSalaRepository.save(dbSala);
+        return ResponseEntity.ok(salaGuardada);
+    }
+
+    // Endpoint DELETE para borrar algún tipo de sala
+    // DELETE (NUEVO)
+    @DeleteMapping("/salas/{id}")
+    public ResponseEntity<Void> eliminarTipoSala(@PathVariable @NonNull Integer id) {
+        if (!tipoSalaRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            // Acá falta lógica para que el borrado sea con los activos (Cascada) <---- OJO!
+            tipoSalaRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            // Error si hay FK constraints (ej. un 'activo' usa esta sala)
+            return ResponseEntity.status(409).build(); 
+        }
+    }
+
+    // -- CRUD DE PRODUCTOS (Consumibles y Bebidas) --
 
     // GET /api/productos (Devuelve TODOS los consumibles)
     @GetMapping

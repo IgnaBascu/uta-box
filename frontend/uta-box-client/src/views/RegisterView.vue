@@ -226,7 +226,7 @@ const handleRegister = async () => {
   try {
     // 1. Llamamos a la API del Gateway
     // Esta es la misma URL que usa tu modal de login
-    await axios.post('http://localhost:8080/api/auth/register', {
+    await axios.post('http://localhost:8081/api/auth/register', {
       nombre: nombre.value,
       email: email.value.toLowerCase(),
       password: password.value,

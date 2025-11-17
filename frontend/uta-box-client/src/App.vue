@@ -141,7 +141,9 @@
             <v-text-field
               v-model="password"
               label="Contraseña"
-              type="password"
+              :type="isPasswordVisible ? 'text' : 'password'"
+              :append-inner-icon="isPasswordVisible ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append-inner="isPasswordVisible = !isPasswordVisible"
               prepend-inner-icon="mdi-lock"
               variant="outlined"
               density="compact"
@@ -193,6 +195,7 @@ const email = ref('')
 const password = ref('')
 const loginError = ref(null)
 const logoutDialog = ref(false)
+const isPasswordVisible = ref(false)
 
 // --- Lógica ---
 
@@ -238,8 +241,8 @@ watch(
 const handleLogin = async () => {
   loading.value = true
   loginError.value = null
-  try {    
-    const response = await axios.post('http://localhost:8080/api/auth/login', {
+  try {
+    const response = await axios.post('http://localhost:8081/api/auth/login', {
       email: email.value.toLowerCase(),
       password: password.value,
     })

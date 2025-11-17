@@ -4,12 +4,12 @@ package com.utabox.core_service.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod; // ¡Importante!
+import org.springframework.http.HttpMethod; 
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // Necesario si copiaste el filtro
-import org.springframework.security.crypto.password.PasswordEncoder; // Necesario si copiaste el filtro
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; 
+import org.springframework.security.crypto.password.PasswordEncoder; 
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -43,9 +43,12 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/reservas/activo/**").permitAll()
                 // 3. Rutas admin
-                .requestMatchers(HttpMethod.POST, "/api/productos/**").hasRole("Admin")
-                .requestMatchers(HttpMethod.PUT, "/api/productos/**").hasRole("Admin")
-                .requestMatchers(HttpMethod.DELETE, "/api/productos/**").hasRole("Admin")
+                .requestMatchers(HttpMethod.POST, "/api/productos/**").hasRole("admin")
+                .requestMatchers(HttpMethod.PUT, "/api/productos/**").hasRole("admin")
+                .requestMatchers(HttpMethod.DELETE, "/api/productos/**").hasRole("admin")
+                .requestMatchers(HttpMethod.POST, "/api/productos/salas").hasRole("admin")
+                .requestMatchers(HttpMethod.PUT, "/api/productos/salas/**").hasRole("admin")
+                .requestMatchers(HttpMethod.DELETE, "/api/productos/salas/**").hasRole("admin")
                 // 4. El resto de rutas SÍ necesitan autenticación (Admin o Cliente)
                 .anyRequest().authenticated() 
             )

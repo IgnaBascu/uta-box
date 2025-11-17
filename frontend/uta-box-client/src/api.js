@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 1. Creamos una instancia de Axios
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api', // URL de API Gateway
+  baseURL: 'http://localhost:8082/api', // <-- Al core-service
 });
 
 // 2. Creamos un "Interceptor"
