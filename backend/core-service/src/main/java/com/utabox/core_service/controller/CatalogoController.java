@@ -111,6 +111,7 @@ public class CatalogoController {
         nuevoProducto.setPrecio(dto.getPrecio());
         nuevoProducto.setStock(dto.getStock());
         nuevoProducto.setTipo(dto.getTipo()); // 'comida' o 'bebida'
+        nuevoProducto.setImagenUrl(dto.getImagenUrl());
 
         Timestamp ahora = new Timestamp(System.currentTimeMillis());
         nuevoProducto.setFechaCreacion(ahora);
@@ -137,6 +138,7 @@ public class CatalogoController {
         dbProducto.setPrecio(productoActualizado.getPrecio());
         dbProducto.setStock(productoActualizado.getStock());
         dbProducto.setTipo(productoActualizado.getTipo());
+        dbProducto.setImagenUrl(productoActualizado.getImagenUrl());
         dbProducto.setFechaActualizacion(new Timestamp(System.currentTimeMillis()));
 
         Producto productoGuardado = productoRepository.save(dbProducto);

@@ -24,6 +24,8 @@ public class ProductoRequestDTO {
     @NotEmpty(message = "El tipo no puede estar vacío (ej. 'sala', 'comida')")
     private String tipo;
 
+    private String imagenUrl;
+
     // --- Getters y Setters ---
 
     public String getNombre() {
@@ -65,6 +67,14 @@ public class ProductoRequestDTO {
     public void setTipo(String tipo) {
         this.tipo = tipo;
     }   
+
+    public String getImagenUrl() {
+        return imagenUrl;
+    }
+
+    public void setImagenUrl(String imagenUrl) {
+        this.imagenUrl = imagenUrl;
+    }
     
 }
     

@@ -2,305 +2,576 @@
   <v-container>
     <v-row>
       <v-col cols="12">
-        <!-- Título con color Primary para el look Kawaii -->
-        <h1 class="text-h4 mb-4" :style="{ color: 'var(--v-theme-primary)' }">
-          Gestión de Productos
+        <h1 class="text-h4 mb-4 mt-4" :style="{ color: 'var(--v-theme-primary)' }">
+          Panel de Administración
         </h1>
       </v-col>
     </v-row>
 
-    <!-- TABLA DE DATOS (Usando v-table simple para evitar errores de importación) -->
-    <v-card elevation="4" rounded="lg">
-      <v-card-title
-        class="d-flex align-center pe-2"
-        :style="{ color: 'var(--v-theme-on-surface)' }"
-      >
-        <v-icon icon="mdi-video-input-component"></v-icon> &nbsp; Productos del Catálogo
+    <v-tabs v-model="tab" align-tabs="center" color="primary" grow>
+      <v-tab value="consumibles">Consumibles (Comida/Bebida)</v-tab>
+      <v-tab value="salas">Salas</v-tab>
+    </v-tabs>
 
-        <v-spacer></v-spacer>
+    <v-window v-model="tab">
+      <v-window-item value="consumibles">
+        <v-card elevation="4" rounded="lg" class="mt-4">
+          <v-card-title
+            class="d-flex align-center pe-2"
+            :style="{ color: 'var(--v-theme-on-surface)' }"
+          >
+            <v-icon icon="mdi-food-fork-drink"></v-icon> &nbsp; Productos Consumibles
 
-        <!-- DIÁLOGO (MODAL) PARA CREAR/EDITAR -->
-        <v-dialog v-model="dialog" max-width="500px">
-          <template v-slot:activator="{ props }">
-            <!-- Botón de "Nuevo Producto" con color primario -->
-            <v-btn color="primary" variant="tonal" v-bind="props" prepend-icon="mdi-plus">
-              Nuevo Producto
-            </v-btn>
-          </template>
+            <v-spacer></v-spacer>
 
-          <!-- Contenido del Modal -->
-          <v-card rounded="lg">
-            <v-card-title>
-              <span class="text-h5">{{ formTitle }}</span>
-            </v-card-title>
+            <v-dialog v-model="dialogProducto" max-width="500px">
+              <template v-slot:activator="{ props }">
+                <v-btn color="primary" variant="tonal" v-bind="props" prepend-icon="mdi-plus">
+                  Nuevo Consumible
+                </v-btn>
+              </template>
 
-            <v-card-text>
-              <v-alert v-if="saveError" type="error" variant="tonal" density="compact" class="mb-4">
-                {{ saveError }}
-              </v-alert>
-              <v-container>
-                <v-row>
-                  <v-col cols="12" sm="6">
-                    <v-text-field
-                      v-model="editedItem.nombre"
-                      label="Nombre"
-                      variant="outlined"
-                      density="compact"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="6">
-                    <v-select
-                      v-model="editedItem.tipo"
-                      label="Tipo"
-                      :items="['sala', 'comida', 'bebida']"
-                      variant="outlined"
-                      density="compact"
-                    ></v-select>
-                  </v-col>
-                  <v-col cols="12">
-                    <v-textarea
-                      v-model="editedItem.descripcion"
-                      label="Descripción"
-                      rows="2"
-                      variant="outlined"
-                      density="compact"
-                    ></v-textarea>
-                  </v-col>
-                  <v-col cols="12" sm="6">
-                    <v-text-field
-                      v-model.number="editedItem.precio"
-                      label="Precio (ej. 50000)"
-                      type="number"
-                      prefix="$"
-                      variant="outlined"
-                      density="compact"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="6">
-                    <v-text-field
-                      v-model.number="editedItem.stock"
-                      label="Stock"
-                      type="number"
-                      variant="outlined"
-                      density="compact"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12">
-                    <v-text-field
-                      v-model="editedItem.imagenUrl"
-                      label="URL de la Imagen"
-                      prepend-inner-icon="mdi-image"
-                      variant="outlined"
-                      density="compact"
-                    ></v-text-field>
-                  </v-col>
-                </v-row>
-              </v-container>
-            </v-card-text>
+              <v-card rounded="lg">
+                <v-card-title>
+                  <span class="text-h5">{{ formTitleProducto }}</span>
+                </v-card-title>
 
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="grey" variant="text" @click="close">Cancelar</v-btn>
-              <!-- Botón Guardar usa Primary/tonal -->
-              <v-btn color="primary" variant="tonal" @click="save">Guardar</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-        <!-- Fin del Diálogo -->
+                <v-card-text>
+                  <v-alert
+                    v-if="saveProductoError"
+                    type="error"
+                    variant="tonal"
+                    density="compact"
+                    class="mb-4"
+                  >
+                    {{ saveProductoError }}
+                  </v-alert>
+                  <v-container>
+                    <v-row>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model="editedProducto.nombre"
+                          label="Nombre"
+                          variant="outlined"
+                          density="compact"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <v-select
+                          v-model="editedProducto.tipo"
+                          label="Tipo"
+                          :items="['comida', 'bebida']"
+                          variant="outlined"
+                          density="compact"
+                        ></v-select>
+                      </v-col>
+                      <v-col cols="12">
+                        <v-textarea
+                          v-model="editedProducto.descripcion"
+                          label="Descripción"
+                          rows="2"
+                          variant="outlined"
+                          density="compact"
+                        ></v-textarea>
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model.number="editedProducto.precio"
+                          label="Precio (ej. 5000)"
+                          type="number"
+                          prefix="$"
+                          variant="outlined"
+                          density="compact"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model.number="editedProducto.stock"
+                          label="Stock"
+                          type="number"
+                          variant="outlined"
+                          density="compact"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12">
+                        <v-text-field
+                          v-model="editedProducto.imagenUrl"
+                          label="URL de la Imagen"
+                          prepend-inner-icon="mdi-image"
+                          variant="outlined"
+                          density="compact"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                  </v-container>
+                </v-card-text>
 
-        <!-- Diálogo de Borrar -->
-        <v-dialog v-model="dialogDelete" max-width="500px">
-          <v-card rounded="lg">
-            <v-card-title class="text-h5">¿Estás seguro que quieres borrar este item?</v-card-title>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="grey" variant="text" @click="closeDelete">Cancelar</v-btn>
-              <v-btn color="error" variant="tonal" @click="deleteItemConfirm">SÍ, Borrar</v-btn>
-              <v-spacer></v-spacer>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-      </v-card-title>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn color="grey" variant="text" @click="closeProducto">Cancelar</v-btn>
+                  <v-btn color="primary" variant="tonal" @click="saveProducto">Guardar</v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+            <v-dialog v-model="dialogDeleteProducto" max-width="500px">
+              <v-card rounded="lg">
+                <v-card-title class="text-h5 text-center"
+                  >¿Estás seguro de borrarlo?</v-card-title
+                >
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn color="grey" variant="text" @click="closeDeleteProducto">Cancelar</v-btn>
+                  <v-btn color="error" variant="tonal" @click="deleteProductoConfirm"
+                    >SÍ, Borrar</v-btn
+                  >
+                  <v-spacer></v-spacer>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+          </v-card-title>
 
-      <!-- Tabla con diseño de Vuetify simple -->
-      <v-table density="compact" class="elevation-0">
-        <!-- Cabecera de la tabla -->
-        <thead>
-          <tr>
-            <th class="text-left font-weight-bold" v-for="header in headers" :key="header.key">
-              {{ header.title }}
-            </th>
-          </tr>
-        </thead>
+          <v-table density="compact" class="elevation-0">
+            <thead>
+              <tr>
+                <th class="text-left font-weight-bold">ID</th>
+                <th class="text-left font-weight-bold">Nombre</th>
+                <th class="text-left font-weight-bold">Tipo</th>
+                <th class="text-left font-weight-bold">Precio</th>
+                <th class="text-left font-weight-bold">Stock</th>
+                <th class="text-left font-weight-bold">Acciones</th>
+              </tr>
+            </thead>
 
-        <!-- Cuerpo de la tabla con los datos -->
-        <tbody>
-          <tr v-if="loading">
-            <td :colspan="headers.length" class="text-center py-4">
-              <v-progress-circular indeterminate color="primary"></v-progress-circular>
-              <div class="mt-2 text-caption">Cargando productos...</div>
-            </td>
-          </tr>
+            <tbody>
+              <tr v-if="loadingProductos">
+                <td :colspan="6" class="text-center py-4">
+                  <v-progress-circular indeterminate color="primary"></v-progress-circular>
+                  <div class="mt-2 text-caption">Cargando consumibles...</div>
+                </td>
+              </tr>
 
-          <tr v-else-if="productos.length === 0">
-            <td :colspan="headers.length" class="text-center py-4 text-medium-emphasis">
-              No hay productos en el catálogo. ¡Crea uno!
-            </td>
-          </tr>
+              <tr v-else-if="productos.length === 0">
+                <td :colspan="6" class="text-center py-4 text-medium-emphasis">
+                  No hay consumibles en el catálogo. ¡Crea uno!
+                </td>
+              </tr>
 
-          <tr v-else v-for="item in productos" :key="item.idProducto">
-            <td>{{ item.idProducto }}</td>
-            <td>{{ item.nombre }}</td>
-            <td>{{ item.tipo }}</td>
-            <td>${{ item.precio.toLocaleString('es-CL') }}</td>
-            <td>{{ item.stock }}</td>
-            <td>
-              <!-- Botones de Acción -->
-              <v-icon
-                icon="mdi-pencil"
-                size="large"
-                class="me-2 text-primary"
-                @click="editItem(item)"
-              ></v-icon>
-              <v-icon
-                icon="mdi-delete"
-                size="large"
-                color="error"
-                @click="deleteItem(item)"
-              ></v-icon>
-            </td>
-          </tr>
-        </tbody>
-      </v-table>
-    </v-card>
+              <tr v-else v-for="item in productos" :key="item.idProducto">
+                <td>{{ item.idProducto }}</td>
+                <td>{{ item.nombre }}</td>
+                <td>{{ item.tipo }}</td>
+                <td>${{ item.precio.toLocaleString('es-CL') }}</td>
+                <td>{{ item.stock }}</td>
+                <td>
+                  <v-icon
+                    icon="mdi-pencil"
+                    size="large"
+                    class="me-2 text-primary"
+                    @click="editProducto(item)"
+                  ></v-icon>
+                  <v-icon
+                    icon="mdi-delete"
+                    size="large"
+                    color="error"
+                    @click="deleteProducto(item)"
+                  ></v-icon>
+                </td>
+              </tr>
+            </tbody>
+          </v-table>
+        </v-card>
+      </v-window-item>
+      <v-window-item value="salas">
+        <v-card elevation="4" rounded="lg" class="mt-4">
+          <v-card-title
+            class="d-flex align-center pe-2"
+            :style="{ color: 'var(--v-theme-on-surface)' }"
+          >
+            <v-icon icon="mdi-door-sliding"></v-icon> &nbsp; Tipos de Sala
+            <v-spacer></v-spacer>
+
+            <v-dialog v-model="dialogSala" max-width="600px">
+              <template v-slot:activator="{ props }">
+                <v-btn color="secondary" variant="tonal" v-bind="props" prepend-icon="mdi-plus">
+                  Nueva Sala
+                </v-btn>
+              </template>
+
+              <v-card rounded="lg">
+                <v-card-title>
+                  <span class="text-h5">{{ formTitleSala }}</span>
+                </v-card-title>
+                <v-card-text>
+                  <v-alert
+                    v-if="saveSalaError"
+                    type="error"
+                    variant="tonal"
+                    density="compact"
+                    class="mb-4"
+                  >
+                    {{ saveSalaError }}
+                  </v-alert>
+                  <v-container>
+                    <v-row>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model="editedSala.nombre"
+                          label="Nombre Sala"
+                          variant="outlined"
+                          density="compact"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model.number="editedSala.capacidad"
+                          label="Capacidad"
+                          type="number"
+                          variant="outlined"
+                          density="compact"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12">
+                        <v-textarea
+                          v-model="editedSala.descripcion"
+                          label="Descripción"
+                          rows="2"
+                          variant="outlined"
+                          density="compact"
+                        ></v-textarea>
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model="editedSala.tematica"
+                          label="Temática (ej. J-Pop)"
+                          variant="outlined"
+                          density="compact"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model.number="editedSala.precioHora"
+                          label="Precio / Hora"
+                          type="number"
+                          prefix="$"
+                          variant="outlined"
+                          density="compact"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12">
+                        <v-text-field
+                          v-model="editedSala.equipamiento"
+                          label='Equipamiento (ej. Pantalla 65\", Micrófonos Pro)'
+                          variant="outlined"
+                          density="compact"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12">
+                        <v-text-field
+                          v-model="editedSala.imagenUrl"
+                          label="URL Imagen (opcional)"
+                          prepend-inner-icon="mdi-image"
+                          variant="outlined"
+                          density="compact"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                  </v-container>
+                </v-card-text>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn color="grey" variant="text" @click="closeSala">Cancelar</v-btn>
+                  <v-btn color="secondary" variant="tonal" @click="saveSala">Guardar Sala</v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+
+            <v-dialog v-model="dialogDeleteSala" max-width="500px">
+              <v-card rounded="lg">
+                <v-card-title class="text-h5 text-center"
+                  >¿Estás seguro de borrarla?</v-card-title
+                >
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn color="grey" variant="text" @click="closeDeleteSala">Cancelar</v-btn>
+                  <v-btn color="error" variant="tonal" @click="deleteSalaConfirm">SÍ, Borrar</v-btn>
+                  <v-spacer></v-spacer>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+          </v-card-title>
+
+          <v-table density="compact" class="elevation-0">
+            <thead>
+              <tr>
+                <th class="text-left font-weight-bold">ID</th>
+                <th class="text-left font-weight-bold">Nombre</th>
+                <th class="text-left font-weight-bold">Capacidad</th>
+                <th class="text-left font-weight-bold">Precio/Hora</th>
+                <th class="text-left font-weight-bold">Temática</th>
+                <th class="text-left font-weight-bold">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-if="loadingSalas">
+                <td :colspan="6" class="text-center py-4">
+                  <v-progress-circular indeterminate color="secondary"></v-progress-circular>
+                  <div class="mt-2 text-caption">Cargando salas...</div>
+                </td>
+              </tr>
+              <tr v-else-if="salas.length === 0">
+                <td :colspan="6" class="text-center py-4 text-medium-emphasis">
+                  No hay salas creadas. ¡Crea una!
+                </td>
+              </tr>
+              <tr v-else v-for="item in salas" :key="item.idTipoSala">
+                <td>{{ item.idTipoSala }}</td>
+                <td>{{ item.nombre }}</td>
+                <td>{{ item.capacidad }}</td>
+                <td>${{ item.precioHora.toLocaleString('es-CL') }}</td>
+                <td>{{ item.tematica }}</td>
+                <td>
+                  <v-icon
+                    icon="mdi-pencil"
+                    size="large"
+                    class="me-2 text-secondary"
+                    @click="editSala(item)"
+                  ></v-icon>
+                  <v-icon
+                    icon="mdi-delete"
+                    size="large"
+                    color="error"
+                    @click="deleteSala(item)"
+                  ></v-icon>
+                </td>
+              </tr>
+            </tbody>
+          </v-table>
+        </v-card>
+      </v-window-item>
+    </v-window>
   </v-container>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import api from '../api' // ¡Usamos el helper de API!
+import api from '../api'
 
-// --- Estado de la Tabla ---
+// Variable para controlar la pestaña
+const tab = ref('consumibles')
+
+// --- LÓGICA PARA CONSUMIBLES (La que ya tenías, renombrada) ---
 const productos = ref([])
-const loading = ref(true)
-
-// NOTA: Los headers aquí se usan solo como referencia para la tabla HTML simple
-const headers = ref([
-  { title: 'ID', key: 'idProducto', sortable: true },
-  { title: 'Nombre', key: 'nombre', sortable: true },
-  { title: 'Tipo', key: 'tipo', sortable: true },
-  { title: 'Precio', key: 'precio', sortable: true },
-  { title: 'Stock', key: 'stock', sortable: true },
-  { title: 'Acciones', key: 'actions', sortable: false },
-])
-
-// --- Estado del Modal (Diálogo) ---
-const dialog = ref(false)
-const dialogDelete = ref(false)
-const editedIndex = ref(-1) // -1 = Nuevo, >-1 = Editando
-const editedItem = ref({
+const loadingProductos = ref(true)
+const dialogProducto = ref(false)
+const dialogDeleteProducto = ref(false)
+const editedProductoIndex = ref(-1)
+const editedProducto = ref({
   idProducto: null,
   nombre: '',
   descripcion: '',
   precio: 0,
   stock: 0,
-  tipo: 'sala',
+  tipo: 'comida',
   imagenUrl: '',
 })
-const defaultItem = { ...editedItem.value }
-const formTitle = computed(() => (editedIndex.value === -1 ? 'Nuevo Producto' : 'Editar Producto'))
-const saveError = ref(null)
+const defaultProducto = { ...editedProducto.value }
+const formTitleProducto = computed(() =>
+  editedProductoIndex.value === -1 ? 'Nuevo Consumible' : 'Editar Consumible',
+)
+const saveProductoError = ref(null)
+
+// --- LÓGICA NUEVA PARA SALAS (Copiada y adaptada) ---
+const salas = ref([])
+const loadingSalas = ref(true)
+const dialogSala = ref(false)
+const dialogDeleteSala = ref(false)
+const editedSalaIndex = ref(-1)
+const editedSala = ref({
+  idTipoSala: null,
+  nombre: '',
+  descripcion: '',
+  tematica: '',
+  equipamiento: '',
+  capacidad: 0,
+  precioHora: 0,
+  imagenUrl: '',
+})
+const defaultSala = { ...editedSala.value }
+const formTitleSala = computed(() =>
+  editedSalaIndex.value === -1 ? 'Nueva Plantilla de Sala' : 'Editar Plantilla de Sala',
+)
+const saveSalaError = ref(null)
 
 // --- Cargar Datos ---
 onMounted(() => {
   fetchProductos()
+  fetchSalas() // Carga ambas listas al montar
 })
 
+// --- FUNCIONES CRUD DE CONSUMIBLES ---
+
 const fetchProductos = async () => {
-  loading.value = true
+  loadingProductos.value = true
   try {
     // Usamos el 'api.js' helper, ya incluye el token
     const response = await api.get('/productos')
-    productos.value = response.data
+    // Filtramos para NO incluir el tipo 'sala' en esta pestaña
+    productos.value = response.data.filter((p) => p.tipo === 'comida' || p.tipo === 'bebida')
   } catch (error) {
     console.error('Error cargando productos:', error)
-    // El alert es un placeholder para errores de red/seguridad
-    alert(
-      'Error: No se pudo cargar los productos. ¿Estás seguro que el backend está corriendo y estás logueado como admin?',
-    )
+    alert('Error: No se pudo cargar los productos.')
   } finally {
-    loading.value = false
+    loadingProductos.value = false
   }
 }
 
-// --- Lógica del Modal y CRUD (sin cambios) ---
-const close = () => {
-  dialog.value = false
-  editedItem.value = { ...defaultItem }
-  editedIndex.value = -1
-  saveError.value = null
+const closeProducto = () => {
+  dialogProducto.value = false
+  editedProducto.value = { ...defaultProducto }
+  editedProductoIndex.value = -1
+  saveProductoError.value = null
 }
 
-const closeDelete = () => {
-  dialogDelete.value = false
-  editedItem.value = { ...defaultItem }
-  editedIndex.value = -1
+const closeDeleteProducto = () => {
+  dialogDeleteProducto.value = false
+  editedProducto.value = { ...defaultProducto }
+  editedProductoIndex.value = -1
 }
 
-const editItem = (item) => {
-  editedIndex.value = productos.value.indexOf(item)
-  editedItem.value = { ...item }
-  dialog.value = true
+const editProducto = (item) => {
+  editedProductoIndex.value = productos.value.indexOf(item)
+  editedProducto.value = { ...item }
+  dialogProducto.value = true
 }
 
-const deleteItem = (item) => {
-  editedIndex.value = productos.value.indexOf(item)
-  editedItem.value = { ...item }
-  dialogDelete.value = true
+const deleteProducto = (item) => {
+  editedProductoIndex.value = productos.value.indexOf(item)
+  editedProducto.value = { ...item }
+  dialogDeleteProducto.value = true
 }
 
-const save = async () => {
-  loading.value = true
-  saveError.value = null
+const saveProducto = async () => {
+  loadingProductos.value = true
+  saveProductoError.value = null
   try {
-    if (editedIndex.value > -1) {
+    if (editedProductoIndex.value > -1) {
       // --- ACTUALIZAR (PUT) ---
-      const id = editedItem.value.idProducto
-      await api.put(`/productos/${id}`, editedItem.value)
+      const id = editedProducto.value.idProducto
+      await api.put(`/productos/${id}`, editedProducto.value)
     } else {
       // --- CREAR (POST) ---
-      await api.post('/productos', editedItem.value)
+      await api.post('/productos', editedProducto.value)
     }
     // Recargamos los datos y cerramos
     fetchProductos()
-    close()
+    closeProducto()
   } catch (error) {
-    console.error('Error guardando:', error)
+    console.error('Error guardando consumible:', error)
     if (error.response && error.response.data && error.response.data.message) {
-      // Error de validación del backend (400 Bad Request)
-      saveError.value = error.response.data.message
+      saveProductoError.value = error.response.data.message
     } else {
-      // Otro tipo de error (red, 500, etc.)
-      saveError.value = 'Error desconocido. Intenta de nuevo.'
+      saveProductoError.value = 'Error desconocido. Intenta de nuevo.'
     }
   } finally {
-    loading.value = false
+    loadingProductos.value = false
   }
 }
 
-const deleteItemConfirm = async () => {
-  loading.value = true
+const deleteProductoConfirm = async () => {
+  loadingProductos.value = true
   try {
     // --- BORRAR (DELETE) ---
-    const id = editedItem.value.idProducto
+    const id = editedProducto.value.idProducto
     await api.delete(`/productos/${id}`)
     fetchProductos()
-    closeDelete()
+    closeDeleteProducto()
   } catch (error) {
-    console.error('Error borrando:', error)
+    console.error('Error borrando consumible:', error)
     alert('Error al borrar. (Asegúrate que no esté en uso por una reserva)')
   } finally {
-    loading.value = false
+    loadingProductos.value = false
+  }
+}
+
+// --- FUNCIONES CRUD DE SALAS ---
+
+const fetchSalas = async () => {
+  loadingSalas.value = true
+  try {
+    const response = await api.get('/productos/salas') // Endpoint de Salas
+    salas.value = response.data
+  } catch (error) {
+    console.error('Error cargando salas:', error)
+  } finally {
+    loadingSalas.value = false
+  }
+}
+
+const closeSala = () => {
+  dialogSala.value = false
+  editedSala.value = { ...defaultSala }
+  editedSalaIndex.value = -1
+  saveSalaError.value = null
+}
+
+const closeDeleteSala = () => {
+  dialogDeleteSala.value = false
+  editedSala.value = { ...defaultSala }
+  editedSalaIndex.value = -1
+}
+
+const editSala = (item) => {
+  editedSalaIndex.value = salas.value.indexOf(item)
+  // OJO: idTipoSala es el ID de la plantilla de sala
+  editedSala.value = { ...item }
+  dialogSala.value = true
+}
+
+const deleteSala = (item) => {
+  editedSalaIndex.value = salas.value.indexOf(item)
+  editedSala.value = { ...item }
+  dialogDeleteSala.value = true
+}
+
+const saveSala = async () => {
+  loadingSalas.value = true
+  saveSalaError.value = null
+  try {
+    if (editedSalaIndex.value > -1) {
+      // --- ACTUALIZAR (PUT) ---
+      const id = editedSala.value.idTipoSala
+      await api.put(`/productos/salas/${id}`, editedSala.value)
+    } else {
+      // --- CREAR (POST) ---
+      await api.post('/productos/salas', editedSala.value)
+    }
+    fetchSalas() // Recarga la lista de salas
+    closeSala()
+  } catch (error) {
+    console.error('Error guardando sala:', error)
+    if (error.response && error.response.data && error.response.data.message) {
+      saveSalaError.value = error.response.data.message
+    } else {
+      saveSalaError.value = 'Error desconocido. Intenta de nuevo.'
+    }
+  } finally {
+    loadingSalas.value = false
+  }
+}
+
+const deleteSalaConfirm = async () => {
+  loadingSalas.value = true
+  try {
+    // --- BORRAR (DELETE) ---
+    const id = editedSala.value.idTipoSala
+    await api.delete(`/productos/salas/${id}`)
+    fetchSalas()
+    closeDeleteSala()
+  } catch (error) {
+    console.error('Error borrando sala:', error)
+    alert('Error al borrar. (Asegúrate que no haya salas físicas asociadas)')
+  } finally {
+    loadingSalas.value = false
   }
 }
 </script>
